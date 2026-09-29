@@ -25,9 +25,31 @@ async function malipoFetch(path: string, init: RequestInit = {}) {
   const t = token();
   if (t) headers.set("authorization", `Bearer ${t}`);
 
-  const res = await fetch(url, { ...init, headers });
+  let res: Response;
+  try {
+    res = await fetch(url, { ...init, headers });
+  } catch {
+    throw Object.assign(new Error("Malipo service is unreachable. Is MALIPO_SERVICE_URL correct?"), {
+      status: 0,
+    });
+  }
+
   const text = await res.text();
-  const body = text ? JSON.parse(text) : null;
+  let body: { message?: string; error?: string; details?: unknown } | null = null;
+  if (text) {
+    try {
+      body = JSON.parse(text);
+    } catch {
+      throw Object.assign(
+        new Error(
+          res.ok
+            ? "Malipo returned a non-JSON response."
+            : `Malipo service error (${res.status}). The API at MALIPO_SERVICE_URL is not reachable.`,
+        ),
+        { status: res.status, body: text.slice(0, 200) },
+      );
+    }
+  }
   if (!res.ok) {
     const err = new Error(body?.message || body?.error || `Malipo ${res.status}`);
     (err as Error & { status?: number; body?: unknown }).status = res.status;
