@@ -39,6 +39,11 @@ const links = [
         <span>payments setup</span>
       </a>
 
+      <div id="svc-banner" class="svc-banner" role="status" aria-live="polite" hidden>
+        <strong>Payments service is degraded.</strong>
+        <span>Some steps may not save or load right now. Please try again shortly.</span>
+      </div>
+
       {
         nav && (
           <nav class="appnav" aria-label="Account">
@@ -83,5 +88,24 @@ const links = [
 
       <slot />
     </div>
+
+    <script>
+      // Surface a down back-end instead of leaving the merchant with blank or
+      // redirecting pages. Readiness probe is `/healthz` (non-OK => degraded).
+      (async () => {
+        const banner = document.getElementById("svc-banner");
+        if (!banner) return;
+        const show = () => banner.removeAttribute("hidden");
+        try {
+          const res = await fetch("/healthz", {
+            headers: { accept: "application/json" },
+            cache: "no-store",
+          });
+          if (!res.ok) show();
+        } catch {
+          show();
+        }
+      })();
+    </script>
   </body>
 </html>

@@ -9,7 +9,7 @@ import {
   requireMerchant,
   setOnceSecrets,
 } from "../lib/session";
-import { confirmDestination, getMerchant, provisionKeys, saveDraft } from "../lib/store";
+import { confirmDestination, provisionKeys, saveDraft, syncFromService } from "../lib/store";
 
 export const prerender = false;
 
@@ -18,7 +18,7 @@ if (gate instanceof Response) return gate;
 const tenantId = gate.businessId;
 
 let draft = getDraft(Astro.cookies);
-const merchant = getMerchant(tenantId);
+const merchant = await syncFromService(tenantId);
 let error: string | null = null;
 
 if (!draft && merchant.destination) {

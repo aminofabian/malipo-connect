@@ -39,8 +39,9 @@ export CONNECT_SESSION_SECRET=long-random-string
 | `/destination` | Add a new till / paybill / bank destination |
 | `/keys` | Charge a phone: the one request to copy, recent payments, rotate keys |
 | `/settings` | Integration settings — API base, client id, and the **website URL** |
-| `/test` | Send a 1 KES test payment |
+| `/test` | Send a test payment — pick the amount (KES 1–500) |
 | `/guide` | Integration guide (mirrors `docs/INTEGRATION.md`) |
+| `/healthz` | Deploy probe — readiness (`?live=1` for liveness) |
 
 Signed-in pages carry an app nav (Home · Destinations · Keys · Settings · Sign out).
 
@@ -64,4 +65,17 @@ Payments made before attribution existed have no destination id. Run
 `mix malipo.backfill_attribution` (or the **Backfill attribution** button on the
 super-admin Merchants page) to attribute them best-effort — each intent goes to the
 newest destination whose `inserted_at` is at or before it. Safe to re-run.
+
+## Health
+
+- `GET /healthz` — **readiness**. `200` only when the Malipo service answers
+  `/ready`; `503` when it is unreachable, `MALIPO_SERVICE_URL` is unset, or the
+  service returns non-2xx (e.g. a pending migration). The body embeds the
+  upstream `/ready` summary (database, vault, Daraja credentials).
+- `GET /healthz?live=1` — **liveness**. `200` whenever the Connect process answers,
+  independent of the service.
+- The Docker image declares a liveness `HEALTHCHECK` against `/healthz?live=1`.
+
+Point platform monitoring at `/healthz` so a down dependency surfaces as a 503
+immediately, instead of as blank or redirecting pages.
 # malipo-connect

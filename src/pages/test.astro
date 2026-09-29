@@ -2,14 +2,14 @@
 import WizardLayout from "../layouts/WizardLayout.astro";
 import TestPayment from "../islands/TestPayment";
 import { requireMerchant } from "../lib/session";
-import { getMerchant } from "../lib/store";
+import { syncFromService } from "../lib/store";
 
 export const prerender = false;
 
 const gate = requireMerchant(Astro.cookies, Astro.request);
 if (gate instanceof Response) return gate;
 const tenantId = gate.businessId;
-const merchant = getMerchant(tenantId);
+const merchant = await syncFromService(tenantId);
 
 if (!merchant.clientId) {
   return Astro.redirect("/destination");
