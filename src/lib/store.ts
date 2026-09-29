@@ -79,30 +79,48 @@ function toPayload(d: DraftDestination): malipo.DestinationPayload {
 export async function saveDraft(
   tenantId: string,
   destination: DraftDestination,
-): Promise<MerchantRecord> {
+): Promise<{ row: MerchantRecord; destinationId: string | null }> {
   const row = getMerchant(tenantId);
   row.destination = destination;
   row.verified = false;
   row.activated = false;
 
+  let destinationId: string | null = null;
+
   if (malipo.malipoConfigured()) {
-    await malipo.putDestination(tenantId, toPayload(destination));
+    const saved = await malipo.createDestination(tenantId, toPayload(destination));
+    destinationId = saved.id;
+  }
+
+  return { row, destinationId };
+}
+
+export async function confirmDestination(
+  tenantId: string,
+  destinationId?: string,
+): Promise<MerchantRecord> {
+  const row = getMerchant(tenantId);
+  if (!row.destination && !destinationId) throw new Error("No destination to confirm");
+  row.verified = true;
+  row.activated = true;
+
+  if (malipo.malipoConfigured()) {
+    await malipo.confirmDestination(tenantId, destinationId);
   }
 
   return row;
 }
 
-export async function confirmDestination(tenantId: string): Promise<MerchantRecord> {
-  const row = getMerchant(tenantId);
-  if (!row.destination) throw new Error("No destination to confirm");
-  row.verified = true;
-  row.activated = true;
-
+export async function activateSavedDestination(
+  tenantId: string,
+  destinationId: string,
+): Promise<void> {
   if (malipo.malipoConfigured()) {
-    await malipo.confirmDestination(tenantId);
+    await malipo.activateDestination(tenantId, destinationId);
   }
 
-  return row;
+  const row = getMerchant(tenantId);
+  row.activated = true;
 }
 
 function hash(secret: string): string {
@@ -154,9 +172,15 @@ export async function syncFromService(tenantId: string): Promise<MerchantRecord>
     if (remote?.client_id) row.clientId = remote.client_id;
     if (remote?.webhook_url !== undefined) row.webhookUrl = remote.webhook_url ?? null;
     if (remote?.destination) {
-      const d = remote.destination;
+      const d = remote.destination as malipo.SavedDestination & {
+        till_number?: string;
+        paybill_number?: string;
+        account_number?: string;
+        bank_id?: string;
+        display_name?: string;
+      };
       row.verified = Boolean(d.verified);
-      row.activated = Boolean(d.activated);
+      row.activated = Boolean(d.active ?? d.activated);
       if (d.kind === "till") {
         row.destination = {
           kind: "till",

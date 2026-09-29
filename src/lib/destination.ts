@@ -131,6 +131,29 @@ export function destinationLabel(d: DraftDestination): string {
   return `${d.bankName} · Acc ${d.account}`;
 }
 
+export type SavedDestinationSummary = {
+  id: string;
+  kind: string;
+  till_number?: string | null;
+  paybill_number?: string | null;
+  account_number?: string | null;
+  display_name?: string | null;
+  verified?: boolean;
+  active?: boolean;
+};
+
+export function savedDestinationLabel(d: SavedDestinationSummary): string {
+  if (d.display_name) return d.display_name;
+  if (d.kind === "till" && d.till_number) return `Till ${d.till_number}`;
+  if (d.kind === "paybill" && d.paybill_number) {
+    return `Paybill ${d.paybill_number} · ${d.account_number ?? ""}`.trim();
+  }
+  if (d.paybill_number && d.account_number) {
+    return `Bank · ${d.paybill_number} · Acc ${d.account_number}`;
+  }
+  return "Saved destination";
+}
+
 export function confirmSentence(d: DraftDestination): string {
   if (d.kind === "till") {
     return `When a customer pays, they get an M-Pesa push. After they enter their PIN, the money is sent to till ${d.till}. Nothing to set up at Safaricom.`;

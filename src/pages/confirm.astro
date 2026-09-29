@@ -3,7 +3,9 @@ import WizardLayout from "../layouts/WizardLayout.astro";
 import { confirmSentence } from "../lib/destination";
 import {
   clearDraft,
+  clearPendingDestinationId,
   getDraft,
+  getPendingDestinationId,
   requireMerchant,
   setOnceSecrets,
 } from "../lib/session";
@@ -29,11 +31,13 @@ if (!draft) {
 
 if (Astro.request.method === "POST") {
   try {
-    await saveDraft(tenantId, draft);
-    await confirmDestination(tenantId);
+    const pendingId = getPendingDestinationId(Astro.cookies);
+    if (!pendingId) await saveDraft(tenantId, draft);
+    await confirmDestination(tenantId, pendingId ?? undefined);
     const secrets = await provisionKeys(tenantId);
     setOnceSecrets(Astro.cookies, secrets);
     clearDraft(Astro.cookies);
+    clearPendingDestinationId(Astro.cookies);
     return Astro.redirect("/keys");
   } catch (e) {
     error = e instanceof Error ? e.message : "Could not confirm.";

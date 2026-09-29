@@ -5,7 +5,10 @@ import {
   CUSTOM_BANK_ID,
   KENYA_MPESA_BANKS,
 } from "../lib/kenya-mpesa-banks";
-import { requireMerchant, setDraft } from "../lib/session";
+import { savedDestinationLabel } from "../lib/destination";
+import type { SavedDestinationSummary } from "../lib/destination";
+import { listDestinations, malipoConfigured } from "../lib/malipo";
+import { requireMerchant, setDraft, setPendingDestinationId } from "../lib/session";
 import { saveDraft } from "../lib/store";
 
 export const prerender = false;
@@ -16,6 +19,16 @@ const tenantId = gate.businessId;
 
 let error: string | null = null;
 let kind = "till";
+let saved: SavedDestinationSummary[] = [];
+
+if (malipoConfigured()) {
+  try {
+    const res = await listDestinations(tenantId);
+    saved = res.destinations ?? [];
+  } catch {
+    saved = [];
+  }
+}
 
 if (Astro.request.method === "POST") {
   const form = await Astro.request.formData();
@@ -26,7 +39,8 @@ if (Astro.request.method === "POST") {
   } else {
     setDraft(Astro.cookies, parsed.value);
     try {
-      await saveDraft(tenantId, parsed.value);
+      const { destinationId } = await saveDraft(tenantId, parsed.value);
+      if (destinationId) setPendingDestinationId(Astro.cookies, destinationId);
       return Astro.redirect("/confirm");
     } catch (e) {
       error = e instanceof Error ? e.message : "Could not save destination.";
@@ -51,6 +65,30 @@ const bankCatalog = Object.fromEntries(
   </p>
 
   {error && <p class="err" role="alert">{error}</p>}
+
+  {
+    saved.length > 0 && (
+      <section class="saved-dests" aria-label="Saved destinations">
+        <h2 class="saved-dests-title">Saved destinations</h2>
+        <p class="saved-dests-hint">Only one can receive payments at a time. Tap to view details.</p>
+        <ul class="saved-dests-list">
+          {saved.map((d) => (
+            <li>
+              <a class:list={["dest-card", { "dest-card-on": d.active }]} href={`/destinations/${d.id}`}>
+                <span class="dest-card-label">{savedDestinationLabel(d)}</span>
+                <span class="dest-card-meta">
+                  {d.active ? "In use" : d.verified ? "Saved" : "Needs confirm"}
+                  {!d.verified && " · Draft"}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <h2 class="section-kicker">Add another</h2>
 
   <form method="post" action="/destination" id="dest-form" data-kind={kind}>
     <div class="choice" role="radiogroup" aria-label="Destination type">

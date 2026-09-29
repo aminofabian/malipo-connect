@@ -5,6 +5,7 @@ import type { DraftDestination } from "./destination";
 import type { RevealedSecrets } from "./store";
 
 const DRAFT = "mc_draft";
+const PENDING_DEST = "mc_pending_dest";
 const ONCE = "mc_once";
 
 const cookieOpts = {
@@ -117,6 +118,18 @@ export function getDraft(cookies: AstroCookies): DraftDestination | null {
 
 export function clearDraft(cookies: AstroCookies): void {
   cookies.delete(DRAFT, { path: "/" });
+}
+
+export function setPendingDestinationId(cookies: AstroCookies, id: string): void {
+  cookies.set(PENDING_DEST, id, cookieOpts);
+}
+
+export function getPendingDestinationId(cookies: AstroCookies): string | null {
+  return cookies.get(PENDING_DEST)?.value ?? null;
+}
+
+export function clearPendingDestinationId(cookies: AstroCookies): void {
+  cookies.delete(PENDING_DEST, { path: "/" });
 }
 
 export function setOnceSecrets(cookies: AstroCookies, secrets: RevealedSecrets): void {

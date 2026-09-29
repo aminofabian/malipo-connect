@@ -821,6 +821,69 @@ h1 {
   line-height: 1.5;
 }
 
+.saved-dests {
+  margin-bottom: 1.75rem;
+}
+
+.saved-dests-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+}
+
+.saved-dests-hint {
+  margin: 0 0 0.85rem;
+  font-size: 0.88rem;
+  color: var(--ink-muted);
+}
+
+.saved-dests-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.dest-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  text-decoration: none;
+  color: inherit;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease;
+}
+
+.dest-card:hover {
+  border-color: color-mix(in srgb, var(--teal) 40%, var(--line));
+}
+
+.dest-card-on {
+  border-color: color-mix(in srgb, var(--teal) 55%, var(--line));
+  background: color-mix(in srgb, var(--teal) 6%, var(--surface));
+}
+
+.dest-card-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.dest-card-meta {
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+}
+
+.section-kicker {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+}
+
 .confirm-card {
   padding: 1.15rem 1.25rem;
   border: 1px solid var(--line);

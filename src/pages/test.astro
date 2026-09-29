@@ -17,10 +17,10 @@ if (!merchant.clientId) {
 ---
 
 <WizardLayout title="Test payment · Malipo Connect" step={4}>
-  <h1>Send yourself KES 1</h1>
+  <h1>Send a test payment</h1>
   <p class="lede">
     Pay from your phone. You’ll get an M-Pesa push; when the money reaches your till, paybill, or
-    bank, you know it works.
+    bank, you know it works. Some banks reject KES 1 — pick an amount they accept.
   </p>
 
   <TestPayment client:load tenantId={tenantId} />

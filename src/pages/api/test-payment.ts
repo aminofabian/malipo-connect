@@ -19,13 +19,25 @@ function mapIntentStatus(status: string): "prompting" | "settled" | "failed" {
   return "prompting";
 }
 
+const MIN_KES = 1;
+const MAX_KES = 500;
+
+function parseAmount(raw: unknown): number | null {
+  const n =
+    typeof raw === "number"
+      ? Math.floor(raw)
+      : Number.parseInt(String(raw ?? "").replace(/[^\d]/g, ""), 10);
+  if (!Number.isFinite(n) || n < MIN_KES || n > MAX_KES) return null;
+  return n;
+}
+
 export const POST: APIRoute = async ({ request, cookies }) => {
   const session = resolveMerchant(cookies);
   if (!session) {
     return new Response(JSON.stringify({ error: "Sign in required" }), { status: 401 });
   }
 
-  let body: { phone?: string };
+  let body: { phone?: string; amount?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -39,15 +51,26 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     });
   }
 
+  const amount = parseAmount(body.amount ?? 10);
+  if (amount == null) {
+    return new Response(
+      JSON.stringify({
+        error: `Amount must be a whole number between KES ${MIN_KES} and ${MAX_KES}`,
+      }),
+      { status: 400, headers: { "content-type": "application/json" } },
+    );
+  }
+
   const tenantId = session.businessId;
 
   if (malipo.malipoConfigured()) {
     try {
-      const intent = await malipo.createTestPayment(tenantId, phone);
+      const intent = await malipo.createTestPayment(tenantId, phone, amount);
       return new Response(
         JSON.stringify({
           id: intent.id,
           status: mapIntentStatus(intent.status),
+          amount,
           live: true,
         }),
         { status: 201, headers: { "content-type": "application/json" } },
@@ -77,8 +100,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     if (row && row.status === "prompting") row.status = "settled";
   }, 4000);
 
-  return new Response(JSON.stringify({ id, status: "pending", live: false }), {
-    status: 201,
-    headers: { "content-type": "application/json" },
-  });
+  return new Response(
+    JSON.stringify({ id, status: "pending", amount, live: false }),
+    {
+      status: 201,
+      headers: { "content-type": "application/json" },
+    },
+  );
 };

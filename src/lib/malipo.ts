@@ -75,18 +75,64 @@ export type DestinationPayload =
       display_name?: string;
     };
 
-export async function putDestination(businessId: string, dest: DestinationPayload) {
-  return malipoFetch(`/internal/v1/merchants/${encodeURIComponent(businessId)}/destination`, {
-    method: "PUT",
-    body: JSON.stringify(dest),
-  });
+export type SavedDestination = {
+  id: string;
+  kind: string;
+  till_number?: string | null;
+  paybill_number?: string | null;
+  account_number?: string | null;
+  bank_id?: string | null;
+  display_name?: string | null;
+  verified: boolean;
+  activated: boolean;
+  active: boolean;
+  in_use: boolean;
+  inserted_at?: string | null;
+};
+
+export async function createDestination(businessId: string, dest: DestinationPayload) {
+  return malipoFetch(
+    `/internal/v1/merchants/${encodeURIComponent(businessId)}/destinations`,
+    {
+      method: "POST",
+      body: JSON.stringify(dest),
+    },
+  ) as Promise<SavedDestination>;
 }
 
-export async function confirmDestination(businessId: string) {
-  return malipoFetch(`/internal/v1/merchants/${encodeURIComponent(businessId)}/confirm`, {
+export async function putDestination(businessId: string, dest: DestinationPayload) {
+  return createDestination(businessId, dest);
+}
+
+export async function listDestinations(businessId: string): Promise<{
+  destinations: SavedDestination[];
+  active_destination_id: string | null;
+}> {
+  return malipoFetch(`/internal/v1/merchants/${encodeURIComponent(businessId)}/destinations`);
+}
+
+export async function getDestination(businessId: string, destinationId: string) {
+  return malipoFetch(
+    `/internal/v1/merchants/${encodeURIComponent(businessId)}/destinations/${encodeURIComponent(destinationId)}`,
+  ) as Promise<SavedDestination>;
+}
+
+export async function confirmDestination(businessId: string, destinationId?: string) {
+  const path = destinationId
+    ? `/internal/v1/merchants/${encodeURIComponent(businessId)}/destinations/${encodeURIComponent(destinationId)}/confirm`
+    : `/internal/v1/merchants/${encodeURIComponent(businessId)}/confirm`;
+
+  return malipoFetch(path, {
     method: "POST",
     body: "{}",
-  });
+  }) as Promise<SavedDestination>;
+}
+
+export async function activateDestination(businessId: string, destinationId: string) {
+  return malipoFetch(
+    `/internal/v1/merchants/${encodeURIComponent(businessId)}/destinations/${encodeURIComponent(destinationId)}/activate`,
+    { method: "POST", body: "{}" },
+  ) as Promise<SavedDestination>;
 }
 
 export async function provisionKeys(businessId: string): Promise<{
@@ -107,17 +153,23 @@ export async function setWebhookUrl(businessId: string, url: string) {
   });
 }
 
-export async function createTestPayment(businessId: string, phone: string) {
+export async function createTestPayment(
+  businessId: string,
+  phone: string,
+  amountKes: number,
+) {
+  const whole = Math.floor(amountKes);
+  const amount = `${whole}.00`;
   const idempotency = `connect-test:${businessId}:${Date.now()}`;
   return malipoFetch(`/internal/v1/intents`, {
     method: "POST",
     body: JSON.stringify({
       business_id: businessId,
-      amount: "1.00",
+      amount,
       currency: "KES",
       payer_msisdn: phone,
       idempotency_key: idempotency,
-      context: { type: "CONNECT_TEST", reference: "KES-1" },
+      context: { type: "CONNECT_TEST", reference: `KES-${whole}` },
     }),
   });
 }
