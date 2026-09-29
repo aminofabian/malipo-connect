@@ -1,0 +1,280 @@
+---
+import WizardLayout from "../layouts/WizardLayout.astro";
+import {
+  destinationKindLabel,
+  savedDestinationFacts,
+  savedDestinationLabel,
+  savedDestinationStatus,
+} from "../lib/destination";
+import type { SavedDestinationSummary } from "../lib/destination";
+import { listDestinations, malipoConfigured } from "../lib/malipo";
+import { requireMerchant } from "../lib/session";
+import {
+  activateSavedDestination,
+  confirmDestination,
+  getSummary,
+  syncFromService,
+} from "../lib/store";
+
+export const prerender = false;
+
+const gate = requireMerchant(Astro.cookies, Astro.request);
+if (gate instanceof Response) return gate;
+const tenantId = gate.businessId;
+
+let error: string | null = null;
+let notice: string | null = null;
+
+if (Astro.request.method === "POST") {
+  const form = await Astro.request.formData();
+  const action = String(form.get("_action") ?? "");
+  const id = String(form.get("id") ?? "");
+
+  try {
+    if (id && action === "activate") {
+      await activateSavedDestination(tenantId, id);
+      await syncFromService(tenantId);
+      notice = "That destination now receives payments.";
+    } else if (id && action === "confirm") {
+      await confirmDestination(tenantId, id);
+      await syncFromService(tenantId);
+      notice = "Destination confirmed and set to receive payments.";
+    } else {
+      error = "That action was missing a destination.";
+    }
+  } catch (e) {
+    error = e instanceof Error ? e.message : "Could not update the destination.";
+  }
+}
+
+let saved: SavedDestinationSummary[] = [];
+
+if (malipoConfigured()) {
+  try {
+    const res = await listDestinations(tenantId);
+    saved = (res.destinations ?? []) as SavedDestinationSummary[];
+  } catch {
+    saved = [];
+  }
+}
+
+const active = saved.find((d) => d.active) ?? null;
+const ready = saved.filter((d) => !d.active && d.verified);
+const drafts = saved.filter((d) => !d.verified);
+
+const summary = await getSummary(tenantId);
+const totalsById = new Map<string, { count: number; total: string }>();
+
+if (summary) {
+  for (const row of summary.by_destination) {
+    if (row.destination_id) totalsById.set(row.destination_id, { count: row.count, total: row.total });
+  }
+}
+
+const receivedCount = summary?.received_count ?? 0;
+const receivedTotal = summary?.received_total ?? "0";
+
+function kes(amount: string): string {
+  const n = Number(amount);
+  if (!Number.isFinite(n)) return `KES ${amount}`;
+  return `KES ${n.toLocaleString("en-KE", {
+    minimumFractionDigits: n % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function receivedLine(d: SavedDestinationSummary): string | null {
+  const total = totalsById.get(d.id);
+  if (!total) return null;
+  return `Received ${kes(total.total)} · ${total.count} payment${total.count === 1 ? "" : "s"}`;
+}
+
+function addedOn(iso?: string | null): string {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleDateString("en-KE", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return "—";
+  }
+}
+
+function meta(d: SavedDestinationSummary): string {
+  return `${destinationKindLabel(d.kind)} · added ${addedOn(d.inserted_at)}`;
+}
+---
+
+<WizardLayout title="Destinations · Malipo Connect" nav current="destinations">
+  <h1>Your destinations</h1>
+  <p class="lede">
+    Where money lands when a customer pays. You can save as many as you like — a till, a paybill, a
+    bank account — but only the one marked <strong>In use</strong> receives payments.
+  </p>
+
+  {error && <p class="err" role="alert">{error}</p>}
+  {notice && <p class="note" role="status">{notice}</p>}
+
+  {
+    saved.length > 0 && receivedCount > 0 && (
+      <p class="received-summary" role="status">
+        Received <strong>{kes(receivedTotal)}</strong> across {receivedCount} settled payment
+        {receivedCount === 1 ? "" : "s"}.
+      </p>
+    )
+  }
+
+  {
+    saved.length === 0 ? (
+      <div class="dest-empty">
+        <p>You have not saved a destination yet.</p>
+        <a class="btn btn-primary" href="/destination">
+          Add a destination
+        </a>
+      </div>
+    ) : (
+      <>
+        {!active && ready.length > 0 && (
+          <p class="warn-once" role="status">
+            None of your destinations is receiving payments yet. Pick one below and set it as
+            default.
+          </p>
+        )}
+
+        {active && (
+          <section class="dest-active" aria-label="Receiving payments">
+            <p class="dest-active-kicker">Receiving payments</p>
+            <p class="dest-active-label">{savedDestinationLabel(active)}</p>
+            <p class="dest-active-meta">{meta(active)}</p>
+            {receivedLine(active) && <p class="dest-active-received">{receivedLine(active)}</p>}
+            <dl class="fact-list">
+              {savedDestinationFacts(active).map((fact) => (
+                <div>
+                  <dt>{fact.label}</dt>
+                  <dd>{fact.value}</dd>
+                </div>
+              ))}
+            </dl>
+            <a class="btn btn-ghost" href={`/destinations/${active.id}`}>
+              View details
+            </a>
+          </section>
+        )}
+
+        {ready.length > 0 && (
+          <section aria-label="Ready to use">
+            <h2 class="section-kicker">Ready to use</h2>
+            <p class="saved-dests-hint">
+              Confirmed, but not the default. Switching is instant and does not change your API
+              keys.
+            </p>
+            <ul class="dest-list">
+              {ready.map((d) => {
+                const status = savedDestinationStatus(d);
+                return (
+                  <li class="dest-row">
+                    <div class="dest-row-main">
+                      <div class="dest-row-top">
+                        <span class="dest-row-label">{savedDestinationLabel(d)}</span>
+                        <span class={`status-pill status-${status.tone}`}>{status.label}</span>
+                      </div>
+                      <dl class="fact-list">
+                        {savedDestinationFacts(d).map((fact) => (
+                          <div>
+                            <dt>{fact.label}</dt>
+                            <dd>{fact.value}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                      <p class="dest-row-meta">{status.hint}</p>
+                      {receivedLine(d) && <p class="dest-row-received">{receivedLine(d)}</p>}
+                    </div>
+                    <div class="dest-row-actions">
+                      <form method="post" action="/destinations">
+                        <input type="hidden" name="_action" value="activate" />
+                        <input type="hidden" name="id" value={d.id} />
+                        <button type="submit" class="btn btn-primary">
+                          Set as default
+                        </button>
+                      </form>
+                      <a class="btn btn-ghost" href={`/destinations/${d.id}`}>
+                        Details
+                      </a>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
+        {drafts.length > 0 && (
+          <section aria-label="Needs confirmation">
+            <h2 class="section-kicker">Needs confirmation</h2>
+            <p class="saved-dests-hint">
+              Confirm these before they can receive money. The numbers are checked once, then the
+              destination is trusted.
+            </p>
+            <ul class="dest-list">
+              {drafts.map((d) => {
+                const status = savedDestinationStatus(d);
+                return (
+                  <li class="dest-row">
+                    <div class="dest-row-main">
+                      <div class="dest-row-top">
+                        <span class="dest-row-label">{savedDestinationLabel(d)}</span>
+                        <span class={`status-pill status-${status.tone}`}>{status.label}</span>
+                      </div>
+                      <dl class="fact-list">
+                        {savedDestinationFacts(d).map((fact) => (
+                          <div>
+                            <dt>{fact.label}</dt>
+                            <dd>{fact.value}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                      <p class="dest-row-meta">{status.hint}</p>
+                      {receivedLine(d) && <p class="dest-row-received">{receivedLine(d)}</p>}
+                    </div>
+                    <div class="dest-row-actions">
+                      <form method="post" action="/destinations">
+                        <input type="hidden" name="_action" value="confirm" />
+                        <input type="hidden" name="id" value={d.id} />
+                        <button type="submit" class="btn btn-teal">
+                          Confirm &amp; use
+                        </button>
+                      </form>
+                      <a class="btn btn-ghost" href={`/destinations/${d.id}`}>
+                        Details
+                      </a>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
+        <details class="explainer">
+          <summary>How destinations work</summary>
+          <p>
+            You can keep several destinations saved — for example a shop till and a bank account.
+            Only the one marked <strong>In use</strong> receives customer payments. Changing the
+            default is instant; your API keys and live payments are untouched.
+          </p>
+          <p>
+            A destination must be <strong>confirmed</strong> before it can receive money. Confirming
+            also makes it the default.
+          </p>
+        </details>
+      </>
+    )
+  }
+
+  <div class="actions">
+    <a class="btn btn-ghost" href="/destination">Add another destination</a>
+    <a class="btn btn-ghost" href="/keys">API keys</a>
+  </div>
+</WizardLayout>

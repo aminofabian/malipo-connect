@@ -12,9 +12,15 @@ function parseAmount(raw: string): number | null {
   return n;
 }
 
-export default function TestPayment({ tenantId }: { tenantId: string }) {
+export default function TestPayment({
+  tenantId,
+  initialAmount,
+}: {
+  tenantId: string;
+  initialAmount?: string;
+}) {
   const [phone, setPhone] = useState("254");
-  const [amount, setAmount] = useState("10");
+  const [amount, setAmount] = useState(initialAmount || "10");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   const [paymentId, setPaymentId] = useState<string | null>(null);

@@ -1,18 +1,59 @@
 ---
 import WizardLayout from "../layouts/WizardLayout.astro";
+import { savedDestinationLabel, savedDestinationStatus } from "../lib/destination";
+import type { SavedDestinationSummary } from "../lib/destination";
+import { listDestinations, malipoConfigured } from "../lib/malipo";
 import { requireMerchant } from "../lib/session";
-import { syncFromService } from "../lib/store";
+import { getSummary, syncFromService } from "../lib/store";
 
 export const prerender = false;
 
 const gate = requireMerchant(Astro.cookies, Astro.request);
 if (gate instanceof Response) return gate;
 const merchant = gate;
+
 const row = await syncFromService(merchant.businessId);
-const ready = Boolean(row.clientId && row.destination);
+const hasKey = Boolean(row.clientId);
+
+let dests: SavedDestinationSummary[] = [];
+if (malipoConfigured()) {
+  try {
+    const res = await listDestinations(merchant.businessId);
+    dests = (res.destinations ?? []) as SavedDestinationSummary[];
+  } catch {
+    dests = [];
+  }
+}
+
+const active = dests.find((d) => d.active) ?? null;
+const anyVerified = dests.some((d) => d.verified);
+const ready = hasKey && Boolean(active);
+
+const summary = await getSummary(merchant.businessId);
+const receivedCount = summary?.received_count ?? 0;
+const receivedTotal = summary?.received_total ?? "0";
+const tested = receivedCount > 0;
+
+function kes(amount: string): string {
+  const n = Number(amount);
+  if (!Number.isFinite(n)) return `KES ${amount}`;
+  return `KES ${n.toLocaleString("en-KE", {
+    minimumFractionDigits: n % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+const steps = [
+  { label: "Add where money lands", done: dests.length > 0, href: "/destinations", optional: false },
+  { label: "Confirm a destination", done: anyVerified, href: "/destinations", optional: false },
+  { label: "Publish your API keys", done: hasKey, href: "/keys", optional: false },
+  { label: "Send a test payment", done: tested, href: "/test", optional: true },
+];
+
+const doneCount = steps.filter((s) => s.done).length;
 ---
 
-<WizardLayout title="Malipo Connect">
+<WizardLayout title="Malipo Connect" nav current="home">
   {
     merchant.email && (
       <p class="note" role="status">
@@ -27,30 +68,79 @@ const ready = Boolean(row.clientId && row.destination);
     copy one request and send it.
   </p>
 
-  <ol class="flow" aria-label="How it works">
-    <li>
-      <b>01</b>
-      <span>Add where money lands</span>
-    </li>
-    <li>
-      <b>02</b>
-      <span>Copy one request</span>
-    </li>
-    <li>
-      <b>03</b>
-      <span>Get paid</span>
-    </li>
-  </ol>
+  {
+    ready ? (
+      <p class="status-ok">
+        Ready — payments land in {savedDestinationLabel(active!)}
+        {active && <span> ({savedDestinationStatus(active).label.toLowerCase()})</span>}.
+      </p>
+    ) : (
+      <p class="warn-once" role="status">
+        Not taking payments yet. Finish the steps below to go live.
+      </p>
+    )
+  }
+
+  {
+    receivedCount > 0 && (
+      <p class="received-summary" role="status">
+        Received <strong>{kes(receivedTotal)}</strong> across {receivedCount} settled payment
+        {receivedCount === 1 ? "" : "s"}.
+      </p>
+    )
+  }
+
+  <section class="settings-block" aria-label="Setup progress">
+    <h2 class="settings-title">
+      Setup — {doneCount} of {steps.length} done
+    </h2>
+    <ul class="checklist">
+      {steps.map((step) => (
+        <li class:list={["checklist-item", { "checklist-done": step.done }]}>
+          <span class="checklist-mark" aria-hidden="true">{step.done ? "✓" : "○"}</span>
+          <a class="checklist-label" href={step.href}>
+            {step.label}
+          </a>
+          {step.optional && !step.done && <span class="checklist-tag">optional</span>}
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="settings-block" aria-label="How it works">
+    <h2 class="settings-title">How it works</h2>
+    <ol class="flow" aria-label="How it works">
+      <li>
+        <b>01</b>
+        <span>Add where money lands</span>
+      </li>
+      <li>
+        <b>02</b>
+        <span>Copy one request</span>
+      </li>
+      <li>
+        <b>03</b>
+        <span>Get paid</span>
+      </li>
+    </ol>
+  </section>
 
   <div class="actions">
     {
       ready ? (
-        <a class="btn btn-primary" href="/keys">View your request</a>
+        <a class="btn btn-primary" href="/keys">
+          View your request
+        </a>
       ) : (
-        <a class="btn btn-primary" href="/destination">Get started</a>
+        <a class="btn btn-primary" href="/destination">
+          Get started
+        </a>
       )
     }
-    {ready && <a class="btn btn-ghost" href="/destination">Manage destinations</a>}
+    <a class="btn btn-ghost" href="/destinations">
+      Destinations{dests.length > 0 ? ` (${dests.length})` : ""}
+    </a>
+    <a class="btn btn-ghost" href="/settings">Settings</a>
     <a class="btn btn-ghost" href="/api/session/logout">Sign out</a>
   </div>
 </WizardLayout>

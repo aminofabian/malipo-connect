@@ -137,9 +137,12 @@ export type SavedDestinationSummary = {
   till_number?: string | null;
   paybill_number?: string | null;
   account_number?: string | null;
+  bank_id?: string | null;
   display_name?: string | null;
   verified?: boolean;
   active?: boolean;
+  activated?: boolean;
+  inserted_at?: string | null;
 };
 
 export function savedDestinationLabel(d: SavedDestinationSummary): string {
@@ -152,6 +155,77 @@ export function savedDestinationLabel(d: SavedDestinationSummary): string {
     return `Bank · ${d.paybill_number} · Acc ${d.account_number}`;
   }
   return "Saved destination";
+}
+
+export function destinationKindLabel(kind: string): string {
+  if (kind === "till") return "Buy Goods till";
+  if (kind === "paybill") return "Business paybill";
+  if (kind === "bank") return "Bank account";
+  return kind;
+}
+
+export type DestinationTone = "on" | "ok" | "draft";
+
+export function savedDestinationStatus(d: SavedDestinationSummary): {
+  label: string;
+  tone: DestinationTone;
+  hint: string;
+} {
+  if (d.active) {
+    return {
+      label: "In use",
+      tone: "on",
+      hint: "Customers' payments land here right now.",
+    };
+  }
+  if (d.verified) {
+    return {
+      label: "Ready",
+      tone: "ok",
+      hint: "Confirmed. Set it as default to receive payments.",
+    };
+  }
+  return {
+    label: "Needs confirmation",
+    tone: "draft",
+    hint: "Confirm it before it can receive payments.",
+  };
+}
+
+export type SavedDestinationFact = { label: string; value: string };
+
+/** The raw identifiers for a saved destination, so the numbers are unambiguous. */
+export function savedDestinationFacts(d: SavedDestinationSummary): SavedDestinationFact[] {
+  const facts: SavedDestinationFact[] = [
+    { label: "Type", value: destinationKindLabel(d.kind) },
+  ];
+
+  if (d.kind === "till") {
+    facts.push({ label: "Till number", value: d.till_number ?? "—" });
+  }
+
+  if (d.kind === "paybill" || d.kind === "bank") {
+    facts.push({
+      label: d.kind === "bank" ? "Lipa Na M-Pesa paybill" : "Paybill",
+      value: d.paybill_number ?? "—",
+    });
+    facts.push({ label: "Account number", value: d.account_number ?? "—" });
+  }
+
+  if (d.display_name) facts.push({ label: "Label", value: d.display_name });
+
+  return facts;
+}
+
+/** One plain sentence of what happens when a customer pays into this destination. */
+export function savedDestinationSentence(d: SavedDestinationSummary): string {
+  if (d.kind === "till") {
+    return `When a customer pays, they get an M-Pesa prompt on their phone. After their PIN, the money lands in till ${d.till_number ?? "—"}. Nothing to set up at Safaricom.`;
+  }
+  if (d.kind === "paybill") {
+    return `When a customer pays, they get an M-Pesa prompt on their phone. After their PIN, the money lands in paybill ${d.paybill_number ?? "—"} (account ${d.account_number ?? "—"}). Nothing to set up at Safaricom.`;
+  }
+  return `When a customer pays, they get an M-Pesa prompt on their phone. After their PIN, the money lands in your bank account ${d.account_number ?? "—"} (Lipa Na M-Pesa paybill ${d.paybill_number ?? "—"}).`;
 }
 
 export function confirmSentence(d: DraftDestination): string {

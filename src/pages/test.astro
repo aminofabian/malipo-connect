@@ -14,16 +14,27 @@ const merchant = getMerchant(tenantId);
 if (!merchant.clientId) {
   return Astro.redirect("/destination");
 }
+
+const MIN_KES = 1;
+const MAX_KES = 500;
+
+function initialAmount(raw: string | null): string {
+  const n = Number.parseInt((raw ?? "").replace(/\D/g, ""), 10);
+  if (!Number.isFinite(n) || n < MIN_KES || n > MAX_KES) return "10";
+  return String(n);
+}
+
+const amount = initialAmount(Astro.url.searchParams.get("amount"));
 ---
 
-<WizardLayout title="Test payment · Malipo Connect" step={4}>
+<WizardLayout title="Test payment · Malipo Connect" step={4} nav current="keys">
   <h1>Send a test payment</h1>
   <p class="lede">
     Pay from your phone. You’ll get an M-Pesa push; when the money reaches your till, paybill, or
     bank, you know it works. Some banks reject KES 1 — pick an amount they accept.
   </p>
 
-  <TestPayment client:load tenantId={tenantId} />
+  <TestPayment client:load tenantId={tenantId} initialAmount={amount} />
 
   <div class="actions" style="margin-top: 1.25rem">
     <a class="btn btn-ghost" href="/keys">Back to keys</a>

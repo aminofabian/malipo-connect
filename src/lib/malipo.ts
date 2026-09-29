@@ -182,6 +182,23 @@ export async function getMerchant(businessId: string) {
   return malipoFetch(`/internal/v1/merchants/${encodeURIComponent(businessId)}`);
 }
 
+export type MerchantSummary = {
+  business_id: string;
+  received_count: number;
+  received_total: string;
+  by_destination: {
+    destination_id: string | null;
+    count: number;
+    total: string;
+  }[];
+};
+
+export async function getSummary(businessId: string): Promise<MerchantSummary> {
+  return malipoFetch(
+    `/internal/v1/merchants/${encodeURIComponent(businessId)}/summary`,
+  ) as Promise<MerchantSummary>;
+}
+
 export async function listPayments(businessId: string, limit = 5) {
   return malipoFetch(
     `/internal/v1/merchants/${encodeURIComponent(businessId)}/payments?limit=${limit}`,

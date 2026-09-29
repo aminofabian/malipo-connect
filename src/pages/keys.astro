@@ -3,6 +3,7 @@ import WizardLayout from "../layouts/WizardLayout.astro";
 import { destinationLabel } from "../lib/destination";
 import { requireMerchant, setOnceSecrets, takeOnceSecrets } from "../lib/session";
 import {
+  getSummary,
   listRecentPayments,
   provisionKeys,
   publicApiBase,
@@ -43,7 +44,30 @@ if (!merchant.clientId || !merchant.destination) {
 
 const base = publicApiBase();
 const dest = destinationLabel(merchant.destination);
-const payments = await listRecentPayments(tenantId);
+
+const scope = Astro.url.searchParams.get("scope") === "all" ? "all" : "this";
+const activeId = merchant.destinationId;
+
+const allPayments = await listRecentPayments(tenantId, 15);
+const payments =
+  scope === "this" && activeId
+    ? allPayments.filter((p) => p.destination_id === activeId)
+    : allPayments;
+
+const summary = await getSummary(tenantId);
+const scopeTotal =
+  scope === "this" && activeId
+    ? summary?.by_destination.find((row) => row.destination_id === activeId)
+    : null;
+
+function kes(amount: string): string {
+  const n = Number(amount);
+  if (!Number.isFinite(n)) return `KES ${amount}`;
+  return `KES ${n.toLocaleString("en-KE", {
+    minimumFractionDigits: n % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
 const chargeRequest = once
   ? `curl -X POST ${base}/v1/payments \\
   -H "Authorization: Bearer ${once.clientSecret}" \\
@@ -74,7 +98,7 @@ function when(iso: string | null | undefined) {
 }
 ---
 
-<WizardLayout title="Charge a phone · Malipo Connect" step={3}>
+<WizardLayout title="Charge a phone · Malipo Connect" step={3} nav current="keys">
   <h1>Charge a phone</h1>
   <p class="lede">
     Money goes to <strong>{dest}</strong>. Copy this request. The customer's phone gets an M-Pesa
@@ -110,6 +134,10 @@ function when(iso: string | null | undefined) {
           server. Verify it, or just confirm with <code>GET</code>.
           <a href="/guide#verify">How to verify</a>.
         </p>
+        <p class="note">
+          Would rather not send <code>callback_url</code> on every request? Save your website URL once
+          in <a href="/settings">Settings</a> and we POST results there by default.
+        </p>
       </>
     ) : (
       <p class="note">
@@ -119,11 +147,99 @@ function when(iso: string | null | undefined) {
     )
   }
 
+  <section class="settings-block" aria-label="Your integration details">
+    <h2 class="settings-title">Your integration details</h2>
+    <p class="settings-hint">
+      These stay the same between payments. Copy them into your website or app.
+    </p>
+
+    <div class="copy-row">
+      <span class="label">Client ID</span>
+      <span class="value">
+        <code>{merchant.clientId}</code>
+        <button type="button" data-copy-btn={merchant.clientId}>Copy</button>
+      </span>
+    </div>
+
+    <div class="copy-row">
+      <span class="label">Endpoint base URL</span>
+      <span class="value">
+        <code>{base}</code>
+        <button type="button" data-copy-btn={base}>Copy</button>
+      </span>
+    </div>
+
+    <div class="copy-row">
+      <span class="label">Create a payment</span>
+      <span class="value"><code>POST {base}/v1/payments</code></span>
+    </div>
+
+    <div class="copy-row">
+      <span class="label">Check a payment</span>
+      <span class="value"><code>GET {base}/v1/payments/{"{id}"}</code></span>
+    </div>
+
+    <div class="actions">
+      <a class="btn btn-ghost" href="/settings">Settings &amp; website URL</a>
+      <a class="btn btn-ghost" href="/guide">Guide</a>
+    </div>
+
+    <details class="explainer">
+      <summary>Which key is which?</summary>
+      <p>
+        <strong>Client secret</strong> (<code>sk_live_…</code>) authenticates your server on every
+        request. <strong>Webhook signing secret</strong> (<code>whsec_…</code>) proves a callback
+        really came from Malipo. Both are shown once, when they are issued.
+      </p>
+      <p>
+        The <strong>client ID</strong> (<code>pk_live_…</code>) is not a secret — it is safe to keep
+        in your configuration and is shown here any time.
+      </p>
+    </details>
+  </section>
+
   <section class="recent" aria-label="Recent payments">
-    <h2 class="recent-title">Recent payments</h2>
+    <div class="recent-head">
+      <h2 class="recent-title">Recent payments</h2>
+      {
+        activeId && (
+          <div class="scope-toggle" role="group" aria-label="Payment scope">
+            <a
+              class:list={["scope-link", { "scope-on": scope === "this" }]}
+              href="/keys"
+              aria-current={scope === "this" ? "true" : undefined}
+            >
+              This destination
+            </a>
+            <a
+              class:list={["scope-link", { "scope-on": scope === "all" }]}
+              href="/keys?scope=all"
+              aria-current={scope === "all" ? "true" : undefined}
+            >
+              All
+            </a>
+          </div>
+        )
+      }
+    </div>
+
+    {
+      scopeTotal && (
+        <p class="note" style="margin-top:0">
+          Received <strong>{kes(scopeTotal.total)}</strong> to this destination across
+          {" "}
+          {scopeTotal.count} payment{scopeTotal.count === 1 ? "" : "s"}.
+        </p>
+      )
+    }
+
     {
       payments.length === 0 ? (
-        <p class="note">No API calls yet. Send a 1 KES test or create a payment.</p>
+        <p class="note">
+          {scope === "this"
+            ? "No payments recorded for this destination yet."
+            : "No payments yet. Send a test or create a payment."}
+        </p>
       ) : (
         <ul class="recent-list">
           {payments.map((p) => (
@@ -141,9 +257,32 @@ function when(iso: string | null | undefined) {
     }
   </section>
 
+  <section class="settings-block" aria-label="Send a test payment">
+    <h2 class="settings-title">Send a test payment</h2>
+    <p class="settings-hint">
+      Pay from your phone to prove the whole thing works. Some banks reject KES 1 — enter whatever
+      amount they accept.
+    </p>
+
+    <form method="get" action="/test" class="test-jump">
+      <div class="field">
+        <label for="test-amount">Amount (KES)</label>
+        <input
+          id="test-amount"
+          name="amount"
+          inputmode="numeric"
+          autocomplete="off"
+          value="10"
+          maxlength="3"
+        />
+      </div>
+      <button type="submit" class="btn btn-accent">Send test</button>
+    </form>
+  </section>
+
   <div class="actions">
-    <a class="btn btn-accent" href="/test">Send a test payment</a>
     <a class="btn btn-ghost" href="/destination">Change destination</a>
+    <a class="btn btn-ghost" href="/destinations">Destinations</a>
   </div>
 
   <form method="post" action="/keys" class="rotate-form">

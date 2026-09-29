@@ -30,6 +30,8 @@ if (malipoConfigured()) {
   }
 }
 
+const activeSaved = saved.find((d) => d.active) ?? null;
+
 if (Astro.request.method === "POST") {
   const form = await Astro.request.formData();
   kind = String(form.get("kind") ?? "till");
@@ -57,7 +59,7 @@ const bankCatalog = Object.fromEntries(
 );
 ---
 
-<WizardLayout title="Receive payments · Malipo Connect" step={1}>
+<WizardLayout title="Receive payments · Malipo Connect" step={1} nav current="destinations">
   <h1>Where should payments be received?</h1>
   <p class="lede">
     When a customer pays, they get an M-Pesa push on their phone. After they enter their PIN, the
@@ -69,26 +71,26 @@ const bankCatalog = Object.fromEntries(
   {
     saved.length > 0 && (
       <section class="saved-dests" aria-label="Saved destinations">
-        <h2 class="saved-dests-title">Saved destinations</h2>
-        <p class="saved-dests-hint">Only one can receive payments at a time. Tap to view details.</p>
-        <ul class="saved-dests-list">
-          {saved.map((d) => (
-            <li>
-              <a class:list={["dest-card", { "dest-card-on": d.active }]} href={`/destinations/${d.id}`}>
-                <span class="dest-card-label">{savedDestinationLabel(d)}</span>
-                <span class="dest-card-meta">
-                  {d.active ? "In use" : d.verified ? "Saved" : "Needs confirm"}
-                  {!d.verified && " · Draft"}
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
+        <p class="saved-dests-hint">
+          You have {saved.length} saved destination{saved.length === 1 ? "" : "s"}
+          {activeSaved && (
+            <>
+              {" — "}
+              <strong>{savedDestinationLabel(activeSaved)}</strong> is receiving payments
+            </>
+          )}
+          .
+        </p>
+        <div class="actions">
+          <a class="btn btn-ghost" href="/destinations">Manage destinations</a>
+        </div>
       </section>
     )
   }
 
-  <h2 class="section-kicker">Add another</h2>
+  <h2 class="section-kicker">
+    {saved.length > 0 ? "Add another destination" : "Add a destination"}
+  </h2>
 
   <form method="post" action="/destination" id="dest-form" data-kind={kind}>
     <div class="choice" role="radiogroup" aria-label="Destination type">
@@ -273,6 +275,23 @@ const bankCatalog = Object.fromEntries(
       <a class="btn btn-ghost" href="/">Back</a>
     </div>
   </form>
+
+  <details class="explainer">
+    <summary>Not sure which to pick?</summary>
+    <p>
+      <strong>Buy Goods till</strong> — the number on your M-Pesa till. Money lands instantly and
+      there is nothing to set up at Safaricom.
+    </p>
+    <p>
+      <strong>Business paybill</strong> — a paybill you own, plus the account number your customers
+      will type. Use the exact account number.
+    </p>
+    <p>
+      <strong>Bank account</strong> — settle straight to your bank. You only type the account number
+      your bank issued for M-Pesa deposits; the paybill is filled in for you.
+    </p>
+    <p>You can save more than one and switch the default whenever you like.</p>
+  </details>
 </WizardLayout>
 
 <script define:vars={{ bankCatalog, CUSTOM_BANK_ID }}>

@@ -6,9 +6,18 @@ interface Props {
   title?: string;
   step?: 1 | 2 | 3 | 4;
   wide?: boolean;
+  nav?: boolean;
+  current?: "home" | "destinations" | "keys" | "settings";
 }
 
-const { title = "Malipo Connect", step, wide = false } = Astro.props;
+const { title = "Malipo Connect", step, wide = false, nav = false, current } = Astro.props;
+
+const links = [
+  { key: "home", href: "/", label: "Home" },
+  { key: "destinations", href: "/destinations", label: "Destinations" },
+  { key: "keys", href: "/keys", label: "Keys" },
+  { key: "settings", href: "/settings", label: "Settings" },
+] as const;
 ---
 
 <!doctype html>
@@ -29,6 +38,25 @@ const { title = "Malipo Connect", step, wide = false } = Astro.props;
         <strong>Malipo Connect</strong>
         <span>payments setup</span>
       </a>
+
+      {
+        nav && (
+          <nav class="appnav" aria-label="Account">
+            {links.map((link) => (
+              <a
+                class:list={["navlink", { "navlink-on": current === link.key }]}
+                href={link.href}
+                aria-current={current === link.key ? "page" : undefined}
+              >
+                {link.label}
+              </a>
+            ))}
+            <a class="navlink navlink-out" href="/api/session/logout">
+              Sign out
+            </a>
+          </nav>
+        )
+      }
 
       {
         step != null && (

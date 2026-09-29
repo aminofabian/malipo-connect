@@ -5,6 +5,7 @@ import * as malipo from "./malipo";
 export type MerchantRecord = {
   tenantId: string;
   destination: DraftDestination | null;
+  destinationId: string | null;
   verified: boolean;
   clientId: string | null;
   clientSecretHash: string | null;
@@ -32,6 +33,7 @@ function empty(tenantId: string): MerchantRecord {
   return {
     tenantId,
     destination: null,
+    destinationId: null,
     verified: false,
     clientId: null,
     clientSecretHash: null,
@@ -181,6 +183,7 @@ export async function syncFromService(tenantId: string): Promise<MerchantRecord>
       };
       row.verified = Boolean(d.verified);
       row.activated = Boolean(d.active ?? d.activated);
+      if (typeof d.id === "string") row.destinationId = d.id;
       if (d.kind === "till") {
         row.destination = {
           kind: "till",
@@ -231,16 +234,34 @@ export type PaymentSummary = {
   amount: string;
   currency: string;
   reference?: string | null;
+  destination_id?: string | null;
   failure_kind?: string | null;
   inserted_at?: string | null;
 };
 
-export async function listRecentPayments(tenantId: string): Promise<PaymentSummary[]> {
+export async function listRecentPayments(
+  tenantId: string,
+  limit = 5,
+): Promise<PaymentSummary[]> {
   if (!malipo.malipoConfigured()) return [];
   try {
-    const res = await malipo.listPayments(tenantId, 5);
+    const res = await malipo.listPayments(tenantId, limit);
     return (res.payments ?? []) as PaymentSummary[];
   } catch {
     return [];
+  }
+}
+
+/**
+ * Settled totals for the business, and per destination when we know the
+ * destination each payment was created against. Returns null when the service
+ * is unreachable or does not yet expose the summary.
+ */
+export async function getSummary(tenantId: string): Promise<malipo.MerchantSummary | null> {
+  if (!malipo.malipoConfigured()) return null;
+  try {
+    return await malipo.getSummary(tenantId);
+  } catch {
+    return null;
   }
 }
