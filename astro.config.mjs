@@ -7,5 +7,6 @@ export default defineConfig({
   output: "server",
   adapter: node({ mode: "standalone" }),
   integrations: [react()],
-  server: { port: 4322 },
+  // host: true → 0.0.0.0 so Coolify/Docker proxies can reach the process
+  server: { host: true, port: 4322 },
 });
