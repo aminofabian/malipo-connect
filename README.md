@@ -26,5 +26,6 @@ export CONNECT_SESSION_SECRET=long-random-string
 
 - Public merchant API: `Authorization: Bearer sk_live_…` on Malipo `POST /v1/payments` (HTTP Basic still works)
 - Integration guide: [`docs/INTEGRATION.md`](../docs/INTEGRATION.md), also served at `/guide`
-- Admin: optional `MALIPO_ADMIN_USER` / `MALIPO_ADMIN_PASSWORD` on the Elixir service
+- Admin: `/admin/*` is gated by a session login. Set `MALIPO_ADMIN_USER` and
+  `MALIPO_ADMIN_PASSWORD` on the Elixir service (dev falls back to `admin` / `admin`).
 # malipo-connect
