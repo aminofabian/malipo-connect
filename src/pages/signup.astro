@@ -1,0 +1,126 @@
+---
+import WizardLayout from "../layouts/WizardLayout.astro";
+import { malipoConfigured, registerAccount } from "../lib/malipo";
+import { decodeConnectSession, setConnectSession } from "../lib/session";
+
+export const prerender = false;
+
+const url = new URL(Astro.request.url);
+const nextRaw = url.searchParams.get("next") || "/destination";
+const next = nextRaw.startsWith("/") && !nextRaw.startsWith("//") ? nextRaw : "/destination";
+
+const existing = decodeConnectSession(Astro.cookies.get("mc_session")?.value);
+if (existing && Astro.request.method === "GET") {
+  return Astro.redirect(next);
+}
+
+let error: string | null = null;
+let emailValue = "";
+let nameValue = "";
+
+if (Astro.request.method === "POST") {
+  const form = await Astro.request.formData();
+  emailValue = String(form.get("email") ?? "").trim();
+  nameValue = String(form.get("display_name") ?? "").trim();
+  const password = String(form.get("password") ?? "");
+  const confirm = String(form.get("password_confirm") ?? "");
+
+  if (!malipoConfigured()) {
+    error = "Malipo service is not configured (set MALIPO_SERVICE_URL).";
+  } else if (!emailValue || password.length < 8) {
+    error = "Use a valid email and a password of at least 8 characters.";
+  } else if (password !== confirm) {
+    error = "Passwords do not match.";
+  } else {
+    try {
+      const account = await registerAccount({
+        email: emailValue,
+        password,
+        display_name: nameValue || undefined,
+      });
+      setConnectSession(Astro.cookies, {
+        businessId: account.business_id,
+        email: account.email,
+        sub: account.id,
+        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 14,
+      });
+      return Astro.redirect(next);
+    } catch (e) {
+      const body = (e as { body?: { details?: { email?: string[] } } }).body;
+      const emailErr = (body?.details?.email ?? []).join(" ").toLowerCase();
+      error =
+        emailErr.includes("taken") || emailErr.includes("unique")
+          ? "That email is already registered. Sign in instead."
+          : e instanceof Error
+            ? e.message
+            : "Could not create your account.";
+    }
+  }
+}
+---
+
+<WizardLayout title="Create account · Malipo Connect">
+  <h1>Create your account</h1>
+  <p class="lede">One account for destinations, keys, and test payments.</p>
+
+  {
+    error && (
+      <p class="err" role="alert">
+        {error}
+      </p>
+    )
+  }
+
+  <form method="post" action={`/signup?next=${encodeURIComponent(next)}`} class="stack">
+    <div class="field">
+      <label for="display_name">Business name <span class="optional">(optional)</span></label>
+      <input
+        id="display_name"
+        name="display_name"
+        type="text"
+        autocomplete="organization"
+        value={nameValue}
+      />
+    </div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input
+        id="email"
+        name="email"
+        type="email"
+        autocomplete="username"
+        required
+        value={emailValue}
+      />
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input
+        id="password"
+        name="password"
+        type="password"
+        autocomplete="new-password"
+        required
+        minlength="8"
+      />
+    </div>
+    <div class="field">
+      <label for="password_confirm">Confirm password</label>
+      <input
+        id="password_confirm"
+        name="password_confirm"
+        type="password"
+        autocomplete="new-password"
+        required
+        minlength="8"
+      />
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">Create account</button>
+    </div>
+  </form>
+
+  <p class="note" style="margin-top: 1.5rem">
+    Already have an account? <a href={`/signin?next=${encodeURIComponent(next)}`}>Sign in</a>
+  </p>
+</WizardLayout>

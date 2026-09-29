@@ -1,0 +1,56 @@
+---
+import WizardLayout from "../layouts/WizardLayout.astro";
+import { requireMerchant } from "../lib/session";
+import { syncFromService } from "../lib/store";
+
+export const prerender = false;
+
+const gate = requireMerchant(Astro.cookies, Astro.request);
+if (gate instanceof Response) return gate;
+const merchant = gate;
+const row = await syncFromService(merchant.businessId);
+const ready = Boolean(row.clientId && row.destination);
+---
+
+<WizardLayout title="Malipo Connect">
+  {
+    merchant.email && (
+      <p class="note" role="status">
+        Signed in as <code>{merchant.email}</code>
+      </p>
+    )
+  }
+  <h1>Receive M-Pesa payments</h1>
+  <p class="lede">
+    Add the till, paybill, or bank account that should receive money when a customer pays. Customers
+    get an M-Pesa push on their phone; after they enter their PIN, the money goes to you. Then you
+    copy one request and send it.
+  </p>
+
+  <ol class="flow" aria-label="How it works">
+    <li>
+      <b>01</b>
+      <span>Add where money lands</span>
+    </li>
+    <li>
+      <b>02</b>
+      <span>Copy one request</span>
+    </li>
+    <li>
+      <b>03</b>
+      <span>Get paid</span>
+    </li>
+  </ol>
+
+  <div class="actions">
+    {
+      ready ? (
+        <a class="btn btn-primary" href="/keys">View your request</a>
+      ) : (
+        <a class="btn btn-primary" href="/destination">Get started</a>
+      )
+    }
+    {ready && <a class="btn btn-ghost" href="/destination">Change destination</a>}
+    <a class="btn btn-ghost" href="/api/session/logout">Sign out</a>
+  </div>
+</WizardLayout>

@@ -1,0 +1,888 @@
+/* Malipo Connect — merchant setup.
+   Matched to the KioskPay marketing site (malipo/www): soft gray ground, pale
+   yellow beams, M-Pesa teal accent, ghost/fill/dark CTAs, spaced wordmark,
+   Sora, rounded surfaces, soft shadows, --ease-out motion. */
+:root {
+  --bg: #bfc3c7;
+  --bg-soft: #e3e6e9;
+  --surface: #f7f8f8;
+  --ink: #0a0a0a;
+  --ink-muted: #3a3a3a;
+  --ink-faint: #6b6b6b;
+  --yellow: #fef27f;
+  --yellow-deep: #f5e86a;
+  --mpesa: #0f6b68;
+  --teal: #0f6b68;
+  --teal-deep: #0a524f;
+  --danger: #9b1c1c;
+  --ok: #0f6b68;
+  --line: rgba(10, 10, 10, 0.12);
+  --line-soft: rgba(10, 10, 10, 0.07);
+  --radius-btn: 6px;
+  --radius-field: 10px;
+  --radius-card: 16px;
+  --radius-media: 20px;
+  --font: "Sora Variable", "Sora", "Avenir Next", "Segoe UI", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --shadow-card: 0 30px 60px -30px rgba(10, 10, 10, 0.4);
+  --shadow-raise: 0 22px 50px -28px rgba(10, 10, 10, 0.45);
+  --shadow-sm: 0 12px 26px -16px rgba(10, 10, 10, 0.4);
+  --max: 30rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 180ms;
+  --dur: 520ms;
+  --dur-slow: 900ms;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: var(--font);
+  color: var(--ink);
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse 70% 45% at 8% -12%, rgba(254, 242, 127, 0.55), transparent 60%),
+    radial-gradient(ellipse 60% 42% at 100% 0%, rgba(254, 242, 127, 0.34), transparent 55%);
+  background-repeat: no-repeat;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--yellow);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  background: rgba(10, 10, 10, 0.06);
+  padding: 0.08em 0.34em;
+  border-radius: 4px;
+}
+
+/* White setup card floating on the soft ground, with the marketing shadow. */
+.shell {
+  width: min(100% - 2rem, var(--max));
+  margin-inline: auto;
+  margin-block: clamp(1.5rem, 5vw, 3rem);
+  padding: clamp(1.5rem, 5vw, 2.5rem);
+  background: #fff;
+  border-radius: var(--radius-media);
+  box-shadow: var(--shadow-card);
+  animation: card-in var(--dur) var(--ease-out) both;
+}
+
+.shell-wide {
+  --max: 44rem;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Spaced wordmark, like the marketing nav. */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 2rem;
+  text-decoration: none;
+}
+
+.brand::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: var(--yellow);
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+.brand strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-indent: 0.2em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.brand span {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* Soft rounded progress rail — current step filled with yellow. */
+.steps {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin: 0 0 1.75rem;
+  padding: 0;
+}
+
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radius-btn);
+  background: var(--bg-soft);
+  font-size: 0.7rem;
+  letter-spacing: -0.01em;
+  color: var(--ink-faint);
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+
+.steps li b {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.steps li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.steps li[data-on="true"] b {
+  color: var(--mpesa);
+}
+
+.steps li[aria-current] {
+  background: var(--yellow);
+  color: var(--ink);
+  box-shadow: 0 0 0 0 rgba(254, 242, 127, 0.55);
+}
+
+.steps li[aria-current] b {
+  color: var(--ink);
+}
+
+h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.5rem, 5vw, 1.9rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.lede {
+  margin: 0 0 1.5rem;
+  color: var(--ink-muted);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+/* Landing-page three-step flow — marketing rail cards. */
+.flow {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0 0 1.75rem;
+  padding: 0;
+}
+
+.flow li {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem 0.95rem 1.05rem;
+  border-radius: 14px;
+  background: var(--bg);
+  border: 1px solid transparent;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) ease,
+    border-color var(--dur-fast) ease;
+}
+
+.flow li:hover {
+  transform: translateY(-3px);
+  background: #fff;
+  border-color: rgba(10, 10, 10, 0.1);
+}
+
+.flow b {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--mpesa);
+}
+
+.flow span {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--ink-muted);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 1.15rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.choice {
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.choice label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) ease,
+    background var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.choice label:hover {
+  border-color: rgba(10, 10, 10, 0.28);
+  transform: translateY(-1px);
+}
+
+.choice label:has(input:checked) {
+  border-color: var(--yellow-deep);
+  background: color-mix(in srgb, var(--yellow) 22%, #fff);
+  box-shadow: var(--shadow-sm);
+}
+
+.choice label:has(input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* One panel at a time — follows the checked radio */
+.panels {
+  margin-top: 0.25rem;
+}
+
+.panel {
+  display: none;
+}
+
+#dest-form:has(input[name="kind"][value="till"]:checked) .panel[data-panel="till"],
+#dest-form:has(input[name="kind"][value="paybill"]:checked) .panel[data-panel="paybill"],
+#dest-form:has(input[name="kind"][value="bank"]:checked) .panel[data-panel="bank"] {
+  display: block;
+}
+
+.choice input {
+  margin-top: 0.2rem;
+  accent-color: var(--mpesa);
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.choice strong {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.choice em {
+  display: block;
+  margin-top: 0.15rem;
+  font-style: normal;
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+}
+
+.field {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.field label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+}
+
+.field input,
+.field select {
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  font: inherit;
+  font-size: 1.02rem;
+  letter-spacing: 0.01em;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-field);
+  background: #fff;
+  color: var(--ink);
+  transition:
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
+}
+
+.field select {
+  letter-spacing: 0;
+}
+
+.field input::placeholder {
+  color: var(--ink-faint);
+  opacity: 1;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--mpesa);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mpesa) 20%, transparent);
+}
+
+.field-hint {
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  line-height: 1.45;
+}
+
+.stack {
+  display: block;
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--ink-faint);
+}
+
+.bank-kicker {
+  margin: 0 0 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--mpesa);
+}
+
+.bank-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bank-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  min-width: 4.5rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) ease,
+    background var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.bank-chip:hover {
+  transform: translateY(-2px);
+  border-color: rgba(10, 10, 10, 0.24);
+}
+
+.bank-chip.is-on,
+.bank-chip[aria-pressed="true"] {
+  border-color: var(--yellow-deep);
+  background: color-mix(in srgb, var(--yellow) 32%, #fff);
+  box-shadow: var(--shadow-sm);
+}
+
+.bank-chip-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.bank-chip-pb {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.settle-card {
+  margin: 0 0 1.15rem;
+  padding: 1rem 1.05rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.settle-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.6rem;
+  padding: 0 0 0.6rem;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.settle-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--mpesa);
+}
+
+.settle-badge {
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(15, 107, 104, 0.1);
+  color: var(--mpesa);
+}
+
+.settle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 0.9rem;
+}
+
+.settle-row:last-of-type {
+  border-bottom: none;
+}
+
+.settle-row span {
+  color: var(--ink-faint);
+  font-size: 0.8rem;
+}
+
+.settle-row strong {
+  text-align: right;
+  letter-spacing: -0.02em;
+}
+
+.settle-row .tabular {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.settle-hint {
+  margin: 0.65rem 0 0;
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  line-height: 1.45;
+}
+
+.preview-line {
+  margin: 0.25rem 0 0.75rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px dashed rgba(15, 107, 104, 0.45);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--mpesa) 7%, #fff);
+}
+
+.preview-kicker {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--mpesa);
+}
+
+.preview-line strong {
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.bank-custom {
+  margin-bottom: 0.25rem;
+}
+
+.recent {
+  margin-top: 1.75rem;
+}
+
+.recent-title {
+  margin: 0 0 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink-muted);
+}
+
+.recent-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.recent-list li {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 0.84rem;
+}
+
+.recent-list li:last-child {
+  border-bottom: none;
+}
+
+.pill {
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.26rem 0.55rem;
+  border-radius: 999px;
+  background: var(--bg-soft);
+}
+
+.pill-settled {
+  background: rgba(15, 107, 104, 0.1);
+  color: var(--mpesa);
+}
+
+.pill-failed {
+  background: rgba(155, 28, 28, 0.1);
+  color: var(--danger);
+}
+
+.pill-prompted,
+.pill-pending {
+  background: color-mix(in srgb, var(--yellow) 55%, #fff);
+  color: var(--ink);
+}
+
+.recent-amt {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.recent-ref {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-when {
+  color: var(--ink-faint);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.rotate-form {
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line-soft);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+/* Marketing buttons: ghost / fill / dark, 6px radius, gentle lift. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.5rem 1.15rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-btn);
+  background: transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.5;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) ease,
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.btn-primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #1c1c1c;
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.btn-ghost:hover {
+  background: rgba(10, 10, 10, 0.05);
+}
+
+.btn-accent {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: var(--ink);
+  box-shadow: 0 0 0 0 rgba(254, 242, 127, 0.55);
+}
+
+.btn-accent:hover {
+  background: var(--yellow-deep);
+  border-color: var(--yellow-deep);
+  box-shadow: 0 10px 28px -12px rgba(10, 10, 10, 0.35);
+}
+
+.btn-teal {
+  background: var(--mpesa);
+  border-color: var(--mpesa);
+  color: #fff;
+}
+
+.btn-teal:hover {
+  background: var(--teal-deep);
+  border-color: var(--teal-deep);
+  box-shadow: 0 10px 28px -12px rgba(10, 10, 10, 0.35);
+}
+
+.copy-row {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.copy-row:last-child {
+  border-bottom: none;
+}
+
+.copy-row .label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+}
+
+.copy-row .value {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  word-break: break-all;
+}
+
+.copy-row button {
+  flex-shrink: 0;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-btn);
+  background: var(--bg-soft);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease;
+}
+
+.copy-row button:hover {
+  background: #fff;
+  border-color: rgba(10, 10, 10, 0.24);
+}
+
+.note {
+  margin: 1rem 0 0;
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+  line-height: 1.5;
+}
+
+.err {
+  margin: 0.85rem 0 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgba(155, 28, 28, 0.3);
+  border-radius: 12px;
+  background: rgba(155, 28, 28, 0.07);
+  color: var(--danger);
+  font-size: 0.86rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.warn-once {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(10, 10, 10, 0.08);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--yellow) 45%, #fff);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.confirm-card {
+  padding: 1.15rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.25rem;
+}
+
+.confirm-card .who {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+}
+
+.confirm-card .name {
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  margin: 0.3rem 0 0.65rem;
+}
+
+.confirm-card p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--ink-muted);
+}
+
+.confirm-card strong {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.status-ok {
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(15, 107, 104, 0.28);
+  border-radius: var(--radius-card);
+  background: rgba(15, 107, 104, 0.1);
+  color: var(--teal-deep);
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell {
+    animation: none;
+  }
+
+  .btn,
+  .flow li,
+  .choice label,
+  .bank-chip {
+    transition: none;
+  }
+
+  .btn:hover,
+  .btn:active,
+  .flow li:hover,
+  .choice label:hover,
+  .bank-chip:hover {
+    transform: none;
+  }
+}

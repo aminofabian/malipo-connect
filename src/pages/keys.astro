@@ -1,0 +1,194 @@
+---
+import WizardLayout from "../layouts/WizardLayout.astro";
+import { destinationLabel } from "../lib/destination";
+import { requireMerchant, setOnceSecrets, takeOnceSecrets } from "../lib/session";
+import {
+  listRecentPayments,
+  provisionKeys,
+  publicApiBase,
+  syncFromService,
+} from "../lib/store";
+
+export const prerender = false;
+
+const gate = requireMerchant(Astro.cookies, Astro.request);
+if (gate instanceof Response) return gate;
+const tenantId = gate.businessId;
+
+let merchant = await syncFromService(tenantId);
+let once = takeOnceSecrets(Astro.cookies);
+let rotateError: string | null = null;
+let rotated = false;
+
+if (Astro.request.method === "POST") {
+  const form = await Astro.request.formData();
+  const action = String(form.get("action") ?? "");
+
+  if (action === "rotate") {
+    try {
+      const secrets = await provisionKeys(tenantId);
+      setOnceSecrets(Astro.cookies, secrets);
+      once = secrets;
+      rotated = true;
+      merchant = await syncFromService(tenantId);
+    } catch (e) {
+      rotateError = e instanceof Error ? e.message : "Could not rotate keys.";
+    }
+  }
+}
+
+if (!merchant.clientId || !merchant.destination) {
+  return Astro.redirect("/destination");
+}
+
+const base = publicApiBase();
+const dest = destinationLabel(merchant.destination);
+const payments = await listRecentPayments(tenantId);
+const chargeRequest = once
+  ? `curl -X POST ${base}/v1/payments \\
+  -H "Authorization: Bearer ${once.clientSecret}" \\
+  -H "Content-Type: application/json" \\
+  -d '{"amount":"100.00","customer_phone":"254712345678","reference":"order-1042","idempotency_key":"order-1042-1","callback_url":"https://your-app.example/paid"}'`
+  : "";
+
+function statusLabel(s: string) {
+  if (s === "settled") return "settled";
+  if (s === "failed" || s === "expired") return "failed";
+  if (s === "prompted") return "prompted";
+  return s;
+}
+
+function when(iso: string | null | undefined) {
+  if (!iso) return "—";
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString("en-KE", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return iso;
+  }
+}
+---
+
+<WizardLayout title="Charge a phone · Malipo Connect" step={3}>
+  <h1>Charge a phone</h1>
+  <p class="lede">
+    Money goes to <strong>{dest}</strong>. Copy this request. The customer's phone gets an M-Pesa
+    prompt.
+  </p>
+
+  {
+    once ? (
+      <>
+        <p class="warn-once" role="status">
+          {rotated ? "New key issued. " : ""}
+          Copy this now. Refreshing the page hides the key forever.
+        </p>
+        <pre class="snippet">{chargeRequest}</pre>
+        <button type="button" class="btn btn-accent" data-copy-btn={chargeRequest}>
+          Copy request
+        </button>
+        <p class="note">
+          Use a new <code>idempotency_key</code> for each payment. Put your server on
+          <code>callback_url</code>. When the customer pays or cancels, we POST there. Then
+          <code>GET {base}/v1/payments/{"{id}"}</code> with the same key and use that response.
+          <a href="/guide">Read the guide</a>.
+        </p>
+        <div class="copy-row">
+          <span class="label">Webhook signing secret</span>
+          <span class="value">
+            <code>{once.webhookSecret}</code>
+            <button type="button" data-copy-btn={once.webhookSecret}>Copy</button>
+          </span>
+        </div>
+        <p class="note">
+          We sign every callback with this secret (<code>X-Malipo-Signature</code>). Keep it on your
+          server. Verify it, or just confirm with <code>GET</code>.
+          <a href="/guide#verify">How to verify</a>.
+        </p>
+      </>
+    ) : (
+      <p class="note">
+        This key was already shown. Rotate below to copy a new request. The old key stops working
+        immediately. <a href="/guide">Read the guide</a>.
+      </p>
+    )
+  }
+
+  <section class="recent" aria-label="Recent payments">
+    <h2 class="recent-title">Recent payments</h2>
+    {
+      payments.length === 0 ? (
+        <p class="note">No API calls yet. Send a 1 KES test or create a payment.</p>
+      ) : (
+        <ul class="recent-list">
+          {payments.map((p) => (
+            <li>
+              <span class={`pill pill-${statusLabel(p.status)}`}>{statusLabel(p.status)}</span>
+              <span class="recent-amt">
+                {p.amount} {p.currency}
+              </span>
+              <span class="recent-ref">{p.reference || p.id.slice(0, 8)}</span>
+              <span class="recent-when">{when(p.inserted_at)}</span>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </section>
+
+  <div class="actions">
+    <a class="btn btn-accent" href="/test">Send a 1 KES test</a>
+    <a class="btn btn-ghost" href="/destination">Change destination</a>
+  </div>
+
+  <form method="post" action="/keys" class="rotate-form">
+    <input type="hidden" name="action" value="rotate" />
+    {rotateError && <p class="err" role="alert">{rotateError}</p>}
+    <p class="note">Lost the request? Rotate issues a new key. The old key stops immediately.</p>
+    <button type="submit" class="btn btn-ghost">Rotate key</button>
+  </form>
+</WizardLayout>
+
+<style>
+  .snippet {
+    margin: 0.85rem 0;
+    padding: 1rem 1.1rem;
+    overflow-x: auto;
+    border-radius: 14px;
+    background: #111;
+    color: var(--yellow);
+    box-shadow: var(--shadow-sm);
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+</style>
+
+<script>
+  document.querySelectorAll("[data-copy-btn]").forEach((btn) => {
+    const label = btn.textContent ?? "Copy";
+    btn.addEventListener("click", async () => {
+      const text = btn.getAttribute("data-copy-btn") ?? "";
+      try {
+        await navigator.clipboard.writeText(text);
+        btn.textContent = "Copied";
+        setTimeout(() => (btn.textContent = label), 1200);
+      } catch {
+        const span = btn.previousElementSibling;
+        if (span) {
+          const range = document.createRange();
+          range.selectNodeContents(span);
+          const sel = window.getSelection();
+          sel?.removeAllRanges();
+          sel?.addRange(range);
+        }
+      }
+    });
+  });
+</script>

@@ -1,0 +1,68 @@
+---
+import WizardLayout from "../layouts/WizardLayout.astro";
+import { confirmSentence } from "../lib/destination";
+import {
+  clearDraft,
+  getDraft,
+  requireMerchant,
+  setOnceSecrets,
+} from "../lib/session";
+import { confirmDestination, getMerchant, provisionKeys, saveDraft } from "../lib/store";
+
+export const prerender = false;
+
+const gate = requireMerchant(Astro.cookies, Astro.request);
+if (gate instanceof Response) return gate;
+const tenantId = gate.businessId;
+
+let draft = getDraft(Astro.cookies);
+const merchant = getMerchant(tenantId);
+let error: string | null = null;
+
+if (!draft && merchant.destination) {
+  draft = merchant.destination;
+}
+
+if (!draft) {
+  return Astro.redirect("/destination");
+}
+
+if (Astro.request.method === "POST") {
+  try {
+    await saveDraft(tenantId, draft);
+    await confirmDestination(tenantId);
+    const secrets = await provisionKeys(tenantId);
+    setOnceSecrets(Astro.cookies, secrets);
+    clearDraft(Astro.cookies);
+    return Astro.redirect("/keys");
+  } catch (e) {
+    error = e instanceof Error ? e.message : "Could not confirm.";
+  }
+}
+
+const name = draft.displayName ?? "Your business";
+const sentence = confirmSentence(draft);
+---
+
+<WizardLayout title="Confirm · Malipo Connect" step={2}>
+  <h1>Does this look right?</h1>
+  <p class="lede">
+    Double-check. This is where money will be sent when a customer pays. A wrong number sends it to
+    someone else.
+  </p>
+
+  {error && <p class="err" role="alert">{error}</p>}
+
+  <div class="confirm-card">
+    <div class="who">Verified name</div>
+    <div class="name">{name}</div>
+    <p>{sentence}</p>
+  </div>
+
+  <form method="post" action="/confirm">
+    <div class="actions">
+      <button type="submit" class="btn btn-teal">Confirm</button>
+      <a class="btn btn-ghost" href="/destination">Edit</a>
+    </div>
+  </form>
+</WizardLayout>

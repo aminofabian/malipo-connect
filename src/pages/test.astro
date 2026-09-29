@@ -1,0 +1,31 @@
+---
+import WizardLayout from "../layouts/WizardLayout.astro";
+import TestPayment from "../islands/TestPayment";
+import { requireMerchant } from "../lib/session";
+import { getMerchant } from "../lib/store";
+
+export const prerender = false;
+
+const gate = requireMerchant(Astro.cookies, Astro.request);
+if (gate instanceof Response) return gate;
+const tenantId = gate.businessId;
+const merchant = getMerchant(tenantId);
+
+if (!merchant.clientId) {
+  return Astro.redirect("/destination");
+}
+---
+
+<WizardLayout title="Test payment · Malipo Connect" step={4}>
+  <h1>Send yourself KES 1</h1>
+  <p class="lede">
+    Pay from your phone. You’ll get an M-Pesa push; when the money reaches your till, paybill, or
+    bank, you know it works.
+  </p>
+
+  <TestPayment client:load tenantId={tenantId} />
+
+  <div class="actions" style="margin-top: 1.25rem">
+    <a class="btn btn-ghost" href="/keys">Back to keys</a>
+  </div>
+</WizardLayout>
