@@ -83,12 +83,22 @@ export function requireMerchant(
   const merchant = resolveMerchant(cookies);
   if (merchant) return merchant;
 
-  const url = new URL(request.url);
+  const url = publicRequestUrl(request);
   const next = url.pathname + url.search;
   return Response.redirect(
     new URL(`/signin?next=${encodeURIComponent(next)}`, url),
     302,
   );
+}
+
+/** Prefer client scheme/host when behind Cloudflare / Traefik (Flexible SSL). */
+function publicRequestUrl(request: Request): URL {
+  const url = new URL(request.url);
+  const proto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  if (proto === "http" || proto === "https") url.protocol = `${proto}:`;
+  const host = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
+  if (host) url.host = host;
+  return url;
 }
 
 export function setDraft(cookies: AstroCookies, draft: DraftDestination): void {
