@@ -76,6 +76,18 @@ newest destination whose `inserted_at` is at or before it. Safe to re-run.
   independent of the service.
 - The Docker image declares a liveness `HEALTHCHECK` against `/healthz?live=1`.
 
+On every page the header shows a small status dot next to the wordmark
+(grey = checking, green = operational, red = degraded) and, when the service is
+degraded, a dismissible banner (remembered for the session in `sessionStorage`).
+
 Point platform monitoring at `/healthz` so a down dependency surfaces as a 503
 immediately, instead of as blank or redirecting pages.
+
+### Deploy (Coolify / Docker)
+
+There is no compose file in this repo — Coolify builds the `Dockerfile`. The image
+already declares a liveness `HEALTHCHECK` (`/healthz?live=1`). For a
+dependency-aware check, set Coolify's **Health Check Path** to `/healthz`
+(readiness). Keep the Docker `HEALTHCHECK` on liveness so a briefly-down Malipo
+service does not restart-loop the container.
 # malipo-connect

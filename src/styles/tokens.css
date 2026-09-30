@@ -154,13 +154,96 @@ code {
   line-height: 1;
 }
 
-.brand span {
+.brand-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   margin-left: auto;
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-faint);
+}
+
+.svc-dot {
+  flex: 0 0 auto;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--ink-faint);
+}
+
+.svc-dot[data-state="up"] {
+  background: var(--ok);
+}
+
+.svc-dot[data-state="down"] {
+  background: var(--danger);
+}
+
+.svc-dot[data-state="unknown"] {
+  background: var(--ink-faint);
+  animation: svc-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes svc-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.svc-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: 0 0 1.5rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgba(155, 28, 28, 0.3);
+  border-radius: 12px;
+  background: rgba(155, 28, 28, 0.07);
+  color: var(--danger);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.svc-banner[hidden] {
+  display: none;
+}
+
+.svc-banner-text {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.svc-banner-text strong {
+  font-weight: 600;
+}
+
+.svc-banner-text span {
+  color: var(--ink-muted);
+}
+
+.svc-dismiss {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 0 0.35rem;
+  border: 0;
+  background: transparent;
+  color: var(--danger);
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.65;
+}
+
+.svc-dismiss:hover {
+  opacity: 1;
 }
 
 /* Soft rounded progress rail — current step filled with yellow. */
@@ -1355,7 +1438,8 @@ h1 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .shell {
+  .shell,
+  .svc-dot {
     animation: none;
   }
 

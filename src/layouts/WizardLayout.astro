@@ -36,12 +36,20 @@ const links = [
     <div class:list={["shell", { "shell-wide": wide }]}>
       <a class="brand" href="/">
         <strong>Malipo Connect</strong>
-        <span>payments setup</span>
+        <span class="brand-tag">
+          <span id="svc-dot" class="svc-dot" data-state="unknown" aria-hidden="true"></span>
+          payments setup
+        </span>
       </a>
 
       <div id="svc-banner" class="svc-banner" role="status" aria-live="polite" hidden>
-        <strong>Payments service is degraded.</strong>
-        <span>Some steps may not save or load right now. Please try again shortly.</span>
+        <div class="svc-banner-text">
+          <strong>Payments service is degraded.</strong>
+          <span>Some steps may not save or load right now. Please try again shortly.</span>
+        </div>
+        <button type="button" class="svc-dismiss" data-dismiss aria-label="Dismiss">
+          <span aria-hidden="true">×</span>
+        </button>
       </div>
 
       {
@@ -90,21 +98,56 @@ const links = [
     </div>
 
     <script>
-      // Surface a down back-end instead of leaving the merchant with blank or
-      // redirecting pages. Readiness probe is `/healthz` (non-OK => degraded).
-      (async () => {
+      // At-a-glance health + a dismissible banner, so a down back-end is visible
+      // instead of leaving the merchant with blank or redirecting pages.
+      // Readiness probe is `/healthz` (non-OK => degraded).
+      (() => {
+        const DISMISS_KEY = "mc-svc-banner-dismissed";
         const banner = document.getElementById("svc-banner");
-        if (!banner) return;
-        const show = () => banner.removeAttribute("hidden");
-        try {
-          const res = await fetch("/healthz", {
-            headers: { accept: "application/json" },
-            cache: "no-store",
-          });
-          if (!res.ok) show();
-        } catch {
-          show();
-        }
+        const dot = document.getElementById("svc-dot");
+
+        const setDot = (state, label) => {
+          if (!dot) return;
+          dot.dataset.state = state;
+          dot.title = label;
+        };
+
+        const revealBanner = () => {
+          if (!banner) return;
+          try {
+            if (sessionStorage.getItem(DISMISS_KEY) === "1") return;
+          } catch {
+            /* private mode — just show it */
+          }
+          banner.removeAttribute("hidden");
+        };
+
+        banner?.querySelector("[data-dismiss]")?.addEventListener("click", () => {
+          banner.setAttribute("hidden", "");
+          try {
+            sessionStorage.setItem(DISMISS_KEY, "1");
+          } catch {
+            /* ignore */
+          }
+        });
+
+        (async () => {
+          try {
+            const res = await fetch("/healthz", {
+              headers: { accept: "application/json" },
+              cache: "no-store",
+            });
+            if (res.ok) {
+              setDot("up", "Payments service: operational");
+              return;
+            }
+            setDot("down", "Payments service: degraded");
+            revealBanner();
+          } catch {
+            setDot("down", "Payments service: unreachable");
+            revealBanner();
+          }
+        })();
       })();
     </script>
   </body>
