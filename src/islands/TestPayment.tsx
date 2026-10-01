@@ -85,64 +85,88 @@ export default function TestPayment({
 
   if (status === "settled") {
     return (
-      <div className="status-ok">Received KES {kesLabel}. Your integration works.</div>
+      <div className="card">
+        <div className="card-body">
+          <span className="section-kicker">Payment settled</span>
+          <p className="callout callout-ok" style={{ marginTop: "0.75rem" }}>
+            Received KES {kesLabel}. Your integration works.
+          </p>
+        </div>
+        <div className="card-foot">
+          <a className="btn btn-primary" href="/keys">
+            Back to your request
+          </a>
+        </div>
+      </div>
     );
   }
 
   return (
-    <form onSubmit={onSubmit} className="panel" style={{ display: "grid", gap: "1rem" }}>
-      <div className="field" style={{ marginBottom: 0 }}>
-        <label htmlFor="phone">Your phone</label>
-        <input
-          id="phone"
-          name="phone"
-          inputMode="tel"
-          autoComplete="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="254712345678"
-        />
+    <section className="card">
+      <div className="card-head">
+        <h2>Pay from your phone</h2>
       </div>
-      <div className="field" style={{ marginBottom: 0 }}>
-        <label htmlFor="amount">Amount (KES)</label>
-        <input
-          id="amount"
-          name="amount"
-          inputMode="numeric"
-          autoComplete="off"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, "").slice(0, 3))}
-          placeholder="10"
-          min={MIN_KES}
-          max={MAX_KES}
-        />
-        <span className="field-hint">
-          Some banks reject KES 1. Try 10 or whatever your bank accepts ({MIN_KES}–{MAX_KES}).
-        </span>
-      </div>
-      {error && (
-        <p className="err" role="alert">
-          {error}
-        </p>
-      )}
-      {status === "prompting" && (
-        <p className="note" style={{ margin: 0 }}>
-          Check your phone for the M-Pesa prompt…
-        </p>
-      )}
-      {status === "failed" && !error && (
-        <p className="err" role="alert">
-          Payment failed. Try a different amount — some banks need more than KES 1.
-        </p>
-      )}
-      <button
-        type="submit"
-        className="btn btn-primary"
-        disabled={status === "prompting"}
-        style={{ justifySelf: "start" }}
-      >
-        {status === "prompting" ? "Waiting…" : `Send KES ${kesLabel}`}
-      </button>
-    </form>
+      <form onSubmit={onSubmit} className="card-body stack">
+        <div className="form-grid">
+          <div className="field">
+            <label htmlFor="phone">Your phone</label>
+            <input
+              id="phone"
+              name="phone"
+              inputMode="tel"
+              autoComplete="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="254712345678"
+            />
+            <span className="field-hint">A Kenyan number, in international format.</span>
+          </div>
+          <div className="field">
+            <label htmlFor="amount">Amount (KES)</label>
+            <input
+              id="amount"
+              name="amount"
+              inputMode="numeric"
+              autoComplete="off"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, "").slice(0, 3))}
+              placeholder="10"
+              min={MIN_KES}
+              max={MAX_KES}
+            />
+            <span className="field-hint">
+              Some banks reject KES 1. Try 10 or whatever your bank accepts ({MIN_KES}–{MAX_KES}).
+            </span>
+          </div>
+        </div>
+
+        {error && (
+          <p className="callout callout-error" role="alert">
+            {error}
+          </p>
+        )}
+
+        {status === "prompting" && (
+          <p className="callout callout-warn" role="status">
+            <span className="callout-title">Waiting for you.</span>
+            <span style={{ fontWeight: 400 }}>
+              Check your phone for the M-Pesa prompt and enter your PIN.
+            </span>
+          </p>
+        )}
+
+        {status === "failed" && !error && (
+          <p className="callout callout-error" role="alert">
+            Payment failed. Try a different amount — some banks need more than KES 1.
+          </p>
+        )}
+
+        <div className="actions">
+          <button type="submit" className="btn btn-primary" disabled={status === "prompting"}>
+            {status === "prompting" ? "Waiting…" : `Send KES ${kesLabel}`}
+          </button>
+        </div>
+      </form>
+    </section>
   );
 }

@@ -1,5 +1,5 @@
 ---
-import WizardLayout from "../../layouts/WizardLayout.astro";
+import AppLayout from "../../layouts/AppLayout.astro";
 import {
   savedDestinationFacts,
   savedDestinationLabel,
@@ -73,79 +73,92 @@ function addedDate(iso?: string | null): string {
 }
 ---
 
-<WizardLayout title={`${label} · Malipo Connect`} nav current="destinations">
-  <a class="note" href="/destinations" style="display:inline-block;margin:0 0 1rem">
-    ← All destinations
+<AppLayout title={label} section="Destinations" current="destinations" email={gate.email}>
+  <a class="btn btn-ghost btn-sm" href="/destinations" style="margin-bottom: var(--s4)">
+    <span aria-hidden="true">←</span> All destinations
   </a>
 
-  <h1>{label}</h1>
+  <header class="page-head">
+    <div>
+      <h1>{label}</h1>
+      <div class="dest-row-top" style="margin-top: var(--s3)">
+        <span class={`pill pill-${status.tone}`}>{status.label}</span>
+        <span class="dest-row-meta">{status.hint}</span>
+      </div>
+    </div>
+    <div class="page-actions">
+      {
+        dest.verified && !dest.active && (
+          <form method="post" action={`/destinations/${id}`}>
+            <button type="submit" name="_action" value="activate" class="btn btn-primary">
+              Set as default
+            </button>
+          </form>
+        )
+      }
+      {
+        !dest.verified && (
+          <form method="post" action={`/destinations/${id}`}>
+            <button type="submit" name="_action" value="confirm" class="btn btn-teal">
+              Confirm &amp; use
+            </button>
+          </form>
+        )
+      }
+      {dest.active && <a class="btn btn-ghost" href="/keys">Go to API keys</a>}
+    </div>
+  </header>
 
-  <p class="dest-row-top" style="margin:0 0 1.25rem">
-    <span class={`status-pill status-${status.tone}`}>{status.label}</span>
-    <span class="dest-row-meta">{status.hint}</span>
-  </p>
+  <div class="blocks">
+    {error && <p class="callout callout-error" role="alert">{error}</p>}
+    {notice && <p class="callout callout-ok" role="status">{notice}</p>}
 
-  {error && <p class="err" role="alert">{error}</p>}
-  {notice && <p class="note" role="status">{notice}</p>}
-
-  {
-    !dest.verified && (
-      <p class="warn-once" role="status">
-        This destination cannot receive money until it is confirmed. Confirming checks the numbers
-        and also sets it as your default.
-      </p>
-    )
-  }
-
-  <div class="actions">
-    {
-      dest.verified && !dest.active && (
-        <form method="post" action={`/destinations/${id}`}>
-          <button type="submit" name="_action" value="activate" class="btn btn-primary">
-            Set as default
-          </button>
-        </form>
-      )
-    }
     {
       !dest.verified && (
-        <form method="post" action={`/destinations/${id}`}>
-          <button type="submit" name="_action" value="confirm" class="btn btn-teal">
-            Confirm &amp; use
-          </button>
-        </form>
+        <p class="callout callout-warn" role="status">
+          <span class="callout-title">This destination cannot receive money until it is confirmed.</span>
+          <span style="font-weight: 400">
+            Confirming checks the numbers and also sets it as your default.
+          </span>
+        </p>
       )
     }
-    {dest.active && (
-      <a class="btn btn-ghost" href="/keys">
-        Go to API keys
-      </a>
-    )}
-    <a class="btn btn-ghost" href="/destinations">All destinations</a>
-  </div>
 
-  <div class="confirm-card" style="margin-top:1.5rem">
-    <div class="who">What happens when a customer pays</div>
-    <p>{sentence}</p>
-  </div>
+    <section class="card">
+      <div class="card-head">
+        <h2>What happens when a customer pays</h2>
+      </div>
+      <div class="card-body">
+        <p style="color: var(--ink-muted); line-height: 1.65">{sentence}</p>
+      </div>
+    </section>
 
-  <section class="settings-block" aria-label="Destination details">
-    <h2 class="settings-title">Details</h2>
-    <dl class="fact-list">
-      {facts.map((fact) => (
-        <div>
-          <dt>{fact.label}</dt>
-          <dd>{fact.value}</dd>
-        </div>
-      ))}
-      <div>
-        <dt>Added</dt>
-        <dd>{addedDate(dest.inserted_at)}</dd>
+    <section class="card">
+      <div class="card-head">
+        <h2>Details</h2>
       </div>
-      <div>
-        <dt>Status</dt>
-        <dd>{status.label}</dd>
+      <div class="card-body">
+        <dl class="fact-list">
+          {facts.map((fact) => (
+            <div>
+              <dt>{fact.label}</dt>
+              <dd>{fact.value}</dd>
+            </div>
+          ))}
+          <div>
+            <dt>Added</dt>
+            <dd>{addedDate(dest.inserted_at)}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>{status.label}</dd>
+          </div>
+        </dl>
       </div>
-    </dl>
-  </section>
-</WizardLayout>
+      <div class="card-foot">
+        <a class="btn btn-ghost btn-sm" href="/destinations">All destinations</a>
+        <a class="btn btn-ghost btn-sm" href="/destination">Add another</a>
+      </div>
+    </section>
+  </div>
+</AppLayout>

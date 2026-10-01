@@ -1,5 +1,5 @@
 ---
-import WizardLayout from "../layouts/WizardLayout.astro";
+import AppLayout from "../layouts/AppLayout.astro";
 import { requireMerchant } from "../lib/session";
 import { publicApiBase, setWebhookUrl, syncFromService } from "../lib/store";
 
@@ -51,184 +51,212 @@ const payment = await res.json();
   : "";
 ---
 
-<WizardLayout title="Settings · Malipo Connect" nav current="settings">
-  <h1>Integration settings</h1>
-  <p class="lede">
-    Everything your website or app needs to take M-Pesa payments, and where we send the result.
-  </p>
+<AppLayout title="Settings" section="Account" current="settings" email={gate.email}>
+  <header class="page-head">
+    <div>
+      <span class="page-kicker">Account</span>
+      <h1>Integration settings</h1>
+      <p class="lede">
+        Everything your website or app needs to take M-Pesa payments, and where we send the result.
+      </p>
+    </div>
+    <div class="page-actions">
+      <a class="btn btn-ghost" href="/keys">API keys</a>
+      <a class="btn btn-ghost" href="/destinations">Destinations</a>
+    </div>
+  </header>
 
-  {error && <p class="err" role="alert">{error}</p>}
-  {notice && <p class="note" role="status">{notice}</p>}
+  <div class="blocks">
+    {error && <p class="callout callout-error" role="alert">{error}</p>}
+    {notice && <p class="callout callout-ok" role="status">{notice}</p>}
 
-  <section class="settings-block" aria-label="Your account">
-    <h2 class="settings-title">Your account</h2>
-    <p class="settings-hint">
-      Your secret keys are shown once when issued. If you have lost them, rotate on the
-      <a href="/keys">Keys</a> page — the old ones stop immediately.
-    </p>
+    <div class="grid-2">
+      <section class="card">
+        <div class="card-head">
+          <h2>Website URL</h2>
+        </div>
+        <div class="card-body">
+          <p class="note" style="margin-bottom: var(--s4)">
+            The <code>https</code> address of the site you are integrating. When a customer pays or
+            cancels, we POST the result here. A payment that carries its own{" "}
+            <code>callback_url</code> uses that instead.
+          </p>
 
-    <div class="copy-row">
-      <span class="label">Client ID</span>
-      <span class="value">
-        <code>{merchant.clientId ?? "— not issued yet —"}</code>
-        {merchant.clientId && <button type="button" data-copy-btn={merchant.clientId}>Copy</button>}
-      </span>
+          {
+            hasKey ? (
+              <form method="post" action="/settings" class="stack">
+                <div class="field">
+                  <label for="site_url">Your website / callback URL</label>
+                  <input
+                    id="site_url"
+                    name="site_url"
+                    type="url"
+                    inputmode="url"
+                    autocomplete="url"
+                    placeholder="https://shop.example/malipo/webhook"
+                    value={siteUrl}
+                  />
+                  <span class="field-hint">
+                    Must be <code>https</code> (or <code>http://localhost</code> while testing). Leave
+                    it blank to stop sending callbacks.
+                  </span>
+                </div>
+                <div class="actions">
+                  <button type="submit" class="btn btn-primary">Save URL</button>
+                  <a class="btn btn-ghost" href="/guide#callback">How callbacks work</a>
+                </div>
+              </form>
+            ) : (
+              <div class="empty" style="padding: var(--s5) var(--s4)">
+                <p>Publish your API keys first — the website URL is stored with them.</p>
+                <a class="btn btn-primary btn-sm" href="/keys">Go to Keys</a>
+              </div>
+            )
+          }
+
+          <p class="note" style="margin-top: var(--s4)">
+            We sign every callback with your webhook signing secret (<code>X-Malipo-Signature</code>).{" "}
+            <a href="/guide#verify">How to verify a callback</a>.
+          </p>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Your account</h2>
+        </div>
+        <div class="card-body">
+          <p class="note" style="margin-bottom: var(--s4)">
+            Your secret keys are shown once when issued. If you have lost them, rotate on the{" "}
+            <a href="/keys">Keys</a> page — the old ones stop immediately.
+          </p>
+
+          <div class="copy-list">
+            <div class="copy-row">
+              <span class="copy-row-label">Client ID</span>
+              <span class="copy-row-value">
+                <code>{merchant.clientId ?? "— not issued yet —"}</code>
+                {
+                  merchant.clientId && (
+                    <button type="button" class="btn btn-ghost btn-sm" data-copy-btn={merchant.clientId}>
+                      Copy
+                    </button>
+                  )
+                }
+              </span>
+            </div>
+            <div class="copy-row">
+              <span class="copy-row-label">Client secret</span>
+              <span class="copy-row-value">
+                <span class={`pill ${merchant.clientId ? "pill-on" : "pill-draft"}`}>
+                  {merchant.clientId ? "Issued (shown once)" : "Not issued"}
+                </span>
+              </span>
+            </div>
+            <div class="copy-row">
+              <span class="copy-row-label">Webhook secret</span>
+              <span class="copy-row-value">
+                <span class={`pill ${merchant.clientId ? "pill-on" : "pill-draft"}`}>
+                  {merchant.clientId ? "Issued (shown once)" : "Not issued"}
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
 
-    <div class="copy-row">
-      <span class="label">Client secret</span>
-      <span class="value">
-        <span class={["status-pill", merchant.clientId ? "status-on" : "status-draft"]}>
-          {merchant.clientId ? "Issued (shown once)" : "Not issued"}
-        </span>
-      </span>
+    <div class="grid-2">
+      <section class="card">
+        <div class="card-head">
+          <h2>API details</h2>
+        </div>
+        <div class="card-body">
+          <div class="copy-list" style="margin-bottom: var(--s4)">
+            <div class="copy-row">
+              <span class="copy-row-label">Endpoint base URL</span>
+              <span class="copy-row-value">
+                <code>{base}</code>
+                <button type="button" class="btn btn-ghost btn-sm" data-copy-btn={base}>Copy</button>
+              </span>
+            </div>
+          </div>
+
+          <ul class="endpoint-list">
+            <li>
+              <span class="method method-post">POST</span>
+              <code>/v1/payments</code>
+              <span class="endpoint-what">Start an M-Pesa prompt. Returns the payment.</span>
+            </li>
+            <li>
+              <span class="method method-get">GET</span>
+              <code>/v1/payments/{"{id}"}</code>
+              <span class="endpoint-what">Check one payment until it settles or fails.</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Authentication</h2>
+        </div>
+        <div class="card-body">
+          <p class="note" style="margin-bottom: var(--s4)">
+            Send your client secret on every request, one of these two ways:
+          </p>
+          <div class="copy-list">
+            <div class="copy-row">
+              <span class="copy-row-label">Bearer token</span>
+              <span class="copy-row-value">
+                <code>Authorization: Bearer sk_live_…</code>
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm"
+                  data-copy-btn="Authorization: Bearer sk_live_…"
+                >
+                  Copy
+                </button>
+              </span>
+            </div>
+            <div class="copy-row">
+              <span class="copy-row-label">HTTP Basic</span>
+              <span class="copy-row-value">
+                <code>Authorization: Basic base64(client_id:client_secret)</code>
+              </span>
+            </div>
+          </div>
+          <p class="note" style="margin-top: var(--s4)">
+            Keep the secret on your server. Never ship it to the browser.
+          </p>
+        </div>
+      </section>
     </div>
-
-    <div class="copy-row">
-      <span class="label">Webhook signing secret</span>
-      <span class="value">
-        <span class={["status-pill", merchant.clientId ? "status-on" : "status-draft"]}>
-          {merchant.clientId ? "Issued (shown once)" : "Not issued"}
-        </span>
-      </span>
-    </div>
-  </section>
-
-  <section class="settings-block" aria-label="API details">
-    <h2 class="settings-title">API details</h2>
-    <p class="settings-hint">The same on every account.</p>
-
-    <div class="copy-row">
-      <span class="label">Endpoint base URL</span>
-      <span class="value">
-        <code>{base}</code>
-        <button type="button" data-copy-btn={base}>Copy</button>
-      </span>
-    </div>
-
-    <ul class="endpoint-list">
-      <li>
-        <span class="method method-post">POST</span>
-        <code>/v1/payments</code>
-        <span class="endpoint-what">Start an M-Pesa prompt. Returns the payment.</span>
-      </li>
-      <li>
-        <span class="method method-get">GET</span>
-        <code>/v1/payments/{"{id}"}</code>
-        <span class="endpoint-what">Check one payment until it settles or fails.</span>
-      </li>
-    </ul>
-  </section>
-
-  <section class="settings-block" aria-label="Authentication">
-    <h2 class="settings-title">Authentication</h2>
-    <p class="settings-hint">
-      Send your client secret on every request, one of these two ways:
-    </p>
-    <div class="copy-row">
-      <span class="label">Bearer token</span>
-      <span class="value">
-        <code>Authorization: Bearer sk_live_…</code>
-        <button type="button" data-copy-btn="Authorization: Bearer sk_live_…">Copy</button>
-      </span>
-    </div>
-    <div class="copy-row">
-      <span class="label">HTTP Basic</span>
-      <span class="value">
-        <code>Authorization: Basic base64(client_id:client_secret)</code>
-      </span>
-    </div>
-    <p class="note">
-      Keep the secret on your server. Never ship it to the browser.
-    </p>
-  </section>
-
-  <section class="settings-block" aria-label="Website URL">
-    <h2 class="settings-title">Website URL</h2>
-    <p class="settings-hint">
-      The <code>https</code> address of the site you are integrating. When a customer pays or
-      cancels, we POST the result here — settle or fail. A payment that carries its own
-      <code>callback_url</code> uses that instead.
-    </p>
 
     {
-      hasKey ? (
-        <form method="post" action="/settings" class="stack">
-          <div class="field">
-            <label for="site_url">Your website / callback URL</label>
-            <input
-              id="site_url"
-              name="site_url"
-              type="url"
-              inputmode="url"
-              autocomplete="url"
-              placeholder="https://shop.example/malipo/webhook"
-              value={siteUrl}
-            />
-            <span class="field-hint">
-              Must be <code>https</code> (or <code>http://localhost</code> while testing). Leave it
-              blank to stop sending callbacks.
-            </span>
+      hasKey && (
+        <section class="card">
+          <div class="card-head">
+            <h2>Quick start</h2>
+            <button type="button" class="btn btn-accent btn-sm" data-copy-btn={quickstart}>
+              Copy the request
+            </button>
           </div>
-          <div class="actions">
-            <button type="submit" class="btn btn-primary">Save URL</button>
-            <a class="btn btn-ghost" href="/guide#callback">How callbacks work</a>
+          <div class="card-body">
+            <p class="note" style="margin-bottom: var(--s3)">
+              Paste your client secret where it says <code>sk_live_…</code>.
+            </p>
+            <pre class="snippet">{quickstart}</pre>
+            <p class="note" style="margin-top: var(--s4)">
+              Then poll <code>GET {base}/v1/payments/{"{id}"}</code>, or let us POST to your
+              website URL above. <a href="/guide">Read the full guide</a>.
+            </p>
           </div>
-        </form>
-      ) : (
-        <div class="dest-empty">
-          <p>Publish your API keys first — the website URL is stored with them.</p>
-          <a class="btn btn-primary" href="/keys">Go to Keys</a>
-        </div>
+        </section>
       )
     }
-
-    <p class="note">
-      We sign every callback with your webhook signing secret (<code>X-Malipo-Signature</code>).
-      <a href="/guide#verify">How to verify a callback</a>.
-    </p>
-  </section>
-
-  {
-    hasKey && (
-      <section class="settings-block" aria-label="Quick start">
-        <h2 class="settings-title">Quick start</h2>
-        <p class="settings-hint">
-          Paste your client secret where it says <code>sk_live_…</code>.
-        </p>
-        <pre class="snippet">{quickstart}</pre>
-        <button type="button" class="btn btn-accent" data-copy-btn={quickstart}>
-          Copy the request
-        </button>
-        <p class="note">
-          Then poll <code>GET {base}/v1/payments/{"{id}"}</code>, or let us POST to your website URL
-          above. <a href="/guide">Read the full guide</a>.
-        </p>
-      </section>
-    )
-  }
-
-  <div class="actions">
-    <a class="btn btn-ghost" href="/keys">API keys</a>
-    <a class="btn btn-ghost" href="/destinations">Destinations</a>
   </div>
-</WizardLayout>
-
-<style>
-  .snippet {
-    margin: 0.85rem 0;
-    padding: 1rem 1.1rem;
-    overflow-x: auto;
-    border-radius: 14px;
-    background: #111;
-    color: var(--yellow);
-    box-shadow: var(--shadow-sm);
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    line-height: 1.6;
-    white-space: pre-wrap;
-  }
-</style>
+</AppLayout>
 
 <script>
   document.querySelectorAll("[data-copy-btn]").forEach((btn) => {

@@ -1,0 +1,1297 @@
+/* ============================================================================
+   Malipo Connect — layer 3 of 3: component vocabulary
+   ----------------------------------------------------------------------------
+   Grouped so a page reads top-to-bottom in one direction: layout grids →
+   surfaces → controls → data display → feedback → code. Every rule here is
+   used by at least one page.
+   ========================================================================= */
+
+/* --- layout grids --------------------------------------------------------- */
+
+/* Two-column work surface: a primary column plus a narrower aside. Pages use
+   this to keep copy and its reference material on screen together. */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 21rem;
+  gap: var(--s5);
+  align-items: start;
+}
+
+/* Even split for paired cards of equal weight. */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s4);
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s3);
+}
+
+.grid-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--s3);
+}
+
+/* Vertical rhythm between page blocks. */
+.blocks > * + * {
+  margin-top: var(--s6);
+}
+
+.section + .section {
+  margin-top: var(--s7);
+  padding-top: var(--s6);
+  border-top: 1px solid var(--line);
+}
+
+.section-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--s4);
+  margin-bottom: var(--s4);
+}
+
+.section-title {
+  font-size: var(--fs-lg);
+  letter-spacing: -0.03em;
+}
+
+.section-kicker {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+.section-hint {
+  max-width: 62ch;
+  margin-top: 0.3rem;
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+}
+
+/* --- surfaces ------------------------------------------------------------- */
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+/* Flush card for lists/tables that need to reach the card edges. */
+.card-flush {
+  overflow: hidden;
+}
+
+.card-body {
+  padding: var(--s5);
+}
+
+.card-body-tight {
+  padding: var(--s4);
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  padding: var(--s4) var(--s5);
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--surface-2);
+}
+
+.card-head h2,
+.card-head h3 {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.card-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s4) var(--s5);
+  border-top: 1px solid var(--line-soft);
+  background: var(--surface-2);
+}
+
+/* A tinted panel for asides, hints and secondary detail. */
+.soft {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  padding: var(--s4);
+}
+
+.soft-yellow {
+  border: 1px solid color-mix(in srgb, var(--yellow) 70%, var(--line));
+  border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--yellow) 26%, #fff);
+  padding: var(--s4);
+}
+
+.soft-teal {
+  border: 1px solid color-mix(in srgb, var(--teal) 34%, var(--line));
+  border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--teal) 7%, #fff);
+  padding: var(--s4);
+}
+
+.aside {
+  display: grid;
+  gap: var(--s4);
+  position: sticky;
+  top: 4.75rem;
+}
+
+/* --- controls ------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.5rem;
+  padding: 0 1.1rem;
+  border: 1px solid transparent;
+  border-radius: var(--r-xs);
+  background: transparent;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) ease,
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.btn-primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #1c1c1c;
+  color: #fff;
+}
+
+.btn-ghost {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.btn-ghost:hover {
+  background: rgba(10, 10, 10, 0.05);
+  color: var(--ink);
+}
+
+.btn-accent {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: var(--ink);
+}
+
+.btn-accent:hover {
+  background: var(--yellow-deep);
+  border-color: var(--yellow-deep);
+  color: var(--ink);
+  box-shadow: 0 10px 24px -12px rgba(10, 10, 10, 0.45);
+}
+
+.btn-teal {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+
+.btn-teal:hover {
+  background: var(--teal-deep);
+  border-color: var(--teal-deep);
+  color: #fff;
+  box-shadow: 0 10px 24px -12px rgba(10, 10, 10, 0.45);
+}
+
+.btn-sm {
+  min-height: 2rem;
+  padding: 0 0.7rem;
+  font-size: var(--fs-sm);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+}
+
+/* --- forms ---------------------------------------------------------------- */
+
+.field {
+  display: grid;
+  gap: var(--s2);
+}
+
+.field label,
+.field-label {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  background: #fff;
+  font-size: var(--fs-base);
+  transition:
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
+}
+
+.field input::placeholder {
+  color: var(--ink-faint);
+  opacity: 1;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 18%, transparent);
+}
+
+.field-hint {
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--ink-faint);
+}
+
+/* Short values (a till number, a paybill) should not get a 700px input. */
+.field-sm {
+  max-width: 15rem;
+}
+
+.field-sm-wide {
+  max-width: 24rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--s4);
+}
+
+/* Radio cards: one per destination kind, laid out as a row on desktop. */
+.choice {
+  display: grid;
+  gap: var(--s3);
+  margin: 0;
+}
+
+.choice-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.choice-grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.choice label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) ease,
+    background var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.choice label:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-2px);
+}
+
+.choice label:has(input:checked) {
+  border-color: var(--yellow-deep);
+  background: color-mix(in srgb, var(--yellow) 20%, #fff);
+  box-shadow: var(--shadow-card);
+}
+
+.choice label:has(input:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.choice input {
+  flex: 0 0 auto;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: 0.15rem;
+  accent-color: var(--teal);
+}
+
+.choice strong {
+  display: block;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.choice em {
+  display: block;
+  margin-top: 0.15rem;
+  font-style: normal;
+  font-size: var(--fs-sm);
+  color: var(--ink-faint);
+  line-height: 1.45;
+}
+
+/* One panel at a time, driven by the checked radio. */
+.panels {
+  display: contents;
+}
+
+.panel {
+  display: none;
+}
+
+#dest-form:has(input[name="kind"][value="till"]:checked) .panel[data-panel="till"],
+#dest-form:has(input[name="kind"][value="paybill"]:checked) .panel[data-panel="paybill"],
+#dest-form:has(input[name="kind"][value="bank"]:checked) .panel[data-panel="bank"] {
+  display: block;
+}
+
+.panel-inner {
+  display: grid;
+  gap: var(--s4);
+  padding: var(--s5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+}
+
+/* --- bank picker ---------------------------------------------------------- */
+
+.bank-kicker {
+  margin-bottom: var(--s1);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+.bank-chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--s2);
+  margin-bottom: var(--s2);
+}
+
+.bank-chip {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) ease,
+    background var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.bank-chip:hover {
+  transform: translateY(-2px);
+  border-color: var(--line-strong);
+}
+
+.bank-chip.is-on,
+.bank-chip[aria-pressed="true"] {
+  border-color: var(--yellow-deep);
+  background: color-mix(in srgb, var(--yellow) 28%, #fff);
+}
+
+.bank-chip-name {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.bank-chip-pb {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faint);
+}
+
+/* Read-only confirmation of what Lipa Na M-Pesa will use. */
+.settle-card {
+  padding: var(--s4);
+  border: 1px solid color-mix(in srgb, var(--teal) 30%, var(--line));
+  border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--teal) 6%, #fff);
+}
+
+.settle-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding-bottom: var(--s3);
+  margin-bottom: var(--s2);
+  border-bottom: 1px solid color-mix(in srgb, var(--teal) 18%, transparent);
+}
+
+.settle-label {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+.badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--teal) 12%, transparent);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+.kv {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.kv-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s4);
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: var(--fs-md);
+}
+
+.kv-row:last-child {
+  border-bottom: 0;
+}
+
+.kv-key {
+  color: var(--ink-faint);
+  font-size: var(--fs-sm);
+}
+
+.kv-val {
+  font-weight: 600;
+  text-align: right;
+  word-break: break-word;
+}
+
+.kv-val.mono {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* What the customer will see on their phone. */
+.preview {
+  padding: var(--s4);
+  border: 1px dashed color-mix(in srgb, var(--teal) 45%, transparent);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--teal) 5%, #fff);
+}
+
+.preview-kicker {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+.preview-value {
+  font-size: var(--fs-base);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- data display --------------------------------------------------------- */
+
+/* Definition list used for destination facts. */
+.fact-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--s3) var(--s5);
+  margin: 0;
+}
+
+.fact-list dt {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.fact-list dd {
+  margin: 0.15rem 0 0;
+  font-size: var(--fs-md);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  word-break: break-word;
+}
+
+/* Numeric emphasis for money received. */
+.figure {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+}
+
+.figure-value {
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.figure-label {
+  font-size: var(--fs-sm);
+  color: var(--ink-muted);
+}
+
+/* Destination records. */
+.dest-list {
+  display: grid;
+  gap: var(--s3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dest-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s4) var(--s5);
+  padding: var(--s4) var(--s5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--dur-fast) ease;
+}
+
+.dest-row:hover {
+  border-color: var(--line-strong);
+}
+
+.dest-row-main {
+  display: grid;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+.dest-row-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.dest-row-label {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  word-break: break-word;
+}
+
+.dest-row-meta {
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+}
+
+.dest-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.dest-row-actions form {
+  display: contents;
+}
+
+/* The destination currently taking money — the one thing that matters most. */
+.dest-hero {
+  padding: var(--s5);
+  border: 1px solid color-mix(in srgb, var(--teal) 40%, var(--line));
+  border-radius: var(--r-lg);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--teal) 9%, #fff),
+    color-mix(in srgb, var(--yellow) 12%, #fff)
+  );
+  box-shadow: var(--shadow-card);
+}
+
+.dest-hero-kicker {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+.dest-hero-label {
+  margin: var(--s2) 0 var(--s1);
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  word-break: break-word;
+}
+
+.dest-hero-meta {
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+}
+
+/* --- pills & status ------------------------------------------------------- */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink-muted);
+}
+
+/* A leading dot makes the state readable without relying on the label alone. */
+.pill::before {
+  content: "";
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: var(--r-full);
+  background: currentColor;
+}
+
+.pill-on {
+  background: color-mix(in srgb, var(--teal) 13%, #fff);
+  color: var(--teal-deep);
+}
+
+.pill-ok {
+  background: color-mix(in srgb, var(--yellow) 45%, #fff);
+  color: var(--ink);
+}
+
+.pill-draft {
+  background: var(--surface-3);
+  color: var(--ink-faint);
+}
+
+.pill-settled {
+  background: color-mix(in srgb, var(--teal) 12%, #fff);
+  color: var(--teal);
+}
+
+.pill-failed {
+  background: rgba(155, 28, 28, 0.1);
+  color: var(--danger);
+}
+
+.pill-prompted,
+.pill-pending {
+  background: color-mix(in srgb, var(--yellow) 45%, #fff);
+  color: var(--ink);
+}
+
+/* --- tables --------------------------------------------------------------- */
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+
+.table th {
+  padding: var(--s3) var(--s4);
+  text-align: left;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--s3) var(--s4);
+  border-bottom: 1px solid var(--line-soft);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table tbody tr:hover td {
+  background: var(--surface-2);
+}
+
+.table .num,
+.table-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.table-amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.table-ref {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+}
+
+.table-when {
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Segmented control for filtering a list in place. */
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+}
+
+.segmented a {
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--r-full);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--ink-faint);
+  text-decoration: none;
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+
+.segmented a:hover {
+  color: var(--ink);
+}
+
+.segmented .on {
+  background: var(--ink);
+  color: #fff;
+}
+
+/* --- key/value copy rows -------------------------------------------------- */
+
+/* Label above, value plus a copy control beside it. */
+.copy-list {
+  display: grid;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.copy-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s3) var(--s4);
+  padding: var(--s3) var(--s4);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.copy-row:last-child {
+  border-bottom: 0;
+}
+
+.copy-row-label {
+  grid-column: 1;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.copy-row-value {
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+
+.copy-row-value :not(code) {
+  font-family: var(--font);
+}
+
+.copy-row .btn {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  align-self: center;
+}
+
+/* --- code ----------------------------------------------------------------- */
+
+.snippet {
+  margin: 0;
+  padding: var(--s4) var(--s5);
+  overflow-x: auto;
+  border-radius: var(--r-lg);
+  /* Dark code on the light ground keeps the yellow beam language intact. */
+  background: var(--ink);
+  color: var(--yellow);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.7;
+  white-space: pre;
+  tab-size: 2;
+}
+
+.snippet code {
+  font-size: inherit;
+}
+
+/* Line numbers would need markup; the indent + gutter carry the structure. */
+.snippet-line {
+  display: block;
+  padding-left: 1.6rem;
+  position: relative;
+}
+
+.snippet-line::before {
+  content: attr(data-n);
+  position: absolute;
+  left: 0;
+  width: 1.1rem;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.28);
+}
+
+/* --- endpoint reference --------------------------------------------------- */
+
+.endpoint-list {
+  display: grid;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.endpoint-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s3);
+  padding: var(--s3);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+
+.endpoint-what {
+  flex: 1 1 14rem;
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+}
+
+.method {
+  flex: 0 0 auto;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--r-xs);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.method-get {
+  background: color-mix(in srgb, var(--teal) 13%, #fff);
+  color: var(--teal-deep);
+}
+
+.method-post {
+  background: color-mix(in srgb, var(--yellow) 55%, #fff);
+  color: var(--ink);
+}
+
+/* --- checklist ------------------------------------------------------------ */
+
+.checklist {
+  display: grid;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease;
+}
+
+.checklist-item:hover {
+  border-color: var(--line-strong);
+}
+
+.checklist-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink-faint);
+}
+
+.checklist-done {
+  background: color-mix(in srgb, var(--teal) 8%, #fff);
+  border-color: color-mix(in srgb, var(--teal) 25%, transparent);
+}
+
+.checklist-done .checklist-mark {
+  background: var(--teal);
+  color: #fff;
+}
+
+.checklist-label {
+  font-size: var(--fs-md);
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.checklist-item:not(.checklist-done) .checklist-label:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.checklist-tag {
+  margin-left: auto;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* --- how it works --------------------------------------------------------- */
+
+.flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: flow;
+}
+
+.flow li {
+  display: grid;
+  gap: var(--s2);
+  align-content: start;
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast) ease;
+}
+
+.flow li:hover {
+  transform: translateY(-3px);
+  border-color: var(--line-strong);
+}
+
+.flow b {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--teal);
+}
+
+.flow span {
+  font-size: var(--fs-md);
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+/* --- feedback ------------------------------------------------------------- */
+
+.note {
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+  color: var(--ink-muted);
+}
+
+.callout {
+  display: grid;
+  gap: var(--s2);
+  padding: var(--s4) var(--s5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  font-size: var(--fs-md);
+  line-height: 1.55;
+}
+
+.callout-ok {
+  border-color: color-mix(in srgb, var(--teal) 30%, transparent);
+  background: color-mix(in srgb, var(--teal) 8%, #fff);
+  color: var(--teal-deep);
+  font-weight: 600;
+}
+
+.callout-warn {
+  border-color: color-mix(in srgb, var(--yellow) 65%, var(--line));
+  background: color-mix(in srgb, var(--yellow) 30%, #fff);
+  color: var(--ink);
+}
+
+.callout-error {
+  border-color: rgba(155, 28, 28, 0.3);
+  background: rgba(155, 28, 28, 0.07);
+  color: var(--danger);
+  font-weight: 500;
+}
+
+.callout-title {
+  font-weight: 600;
+}
+
+/* Money received, stated once and prominently. */
+.summary-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  padding: var(--s4) var(--s5);
+  border: 1px solid color-mix(in srgb, var(--teal) 26%, transparent);
+  border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--teal) 7%, #fff);
+}
+
+.summary-bar strong {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- disclosure ----------------------------------------------------------- */
+
+.explainer {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.explainer summary {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.explainer summary::-webkit-details-marker {
+  display: none;
+}
+
+.explainer summary::after {
+  content: "";
+  margin-left: auto;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 1.5px solid var(--ink-faint);
+  border-bottom: 1.5px solid var(--ink-faint);
+  transform: rotate(45deg) translate(-0.1rem, -0.1rem);
+  transition: transform var(--dur) var(--ease-out);
+}
+
+.explainer[open] summary::after {
+  transform: rotate(-135deg) translate(-0.15rem, -0.15rem);
+}
+
+.explainer-body {
+  display: grid;
+  gap: var(--s3);
+  padding: 0 var(--s4) var(--s4);
+  border-top: 1px solid var(--line-soft);
+  padding-top: var(--s3);
+}
+
+.explainer-body p {
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+}
+
+/* --- empty state ---------------------------------------------------------- */
+
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: var(--s4);
+  padding: var(--s7) var(--s5);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+}
+
+.empty p {
+  max-width: 46ch;
+  color: var(--ink-muted);
+  font-size: var(--fs-md);
+  line-height: 1.6;
+}
+
+/* On a wide canvas a full-bleed empty state reads as a stranded box. */
+.card-body > .empty,
+.blocks > .empty {
+  padding: var(--s6) var(--s5);
+}
+
+/* --- progress ------------------------------------------------------------- */
+
+.progress {
+  height: 4px;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: var(--r-full);
+  background: var(--teal);
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+/* --- responsive ----------------------------------------------------------- */
+
+@media (max-width: 1280px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .aside {
+    position: static;
+  }
+}
+
+@media (max-width: 860px) {
+  .grid-2,
+  .grid-3,
+  .choice-grid,
+  .choice-grid-2,
+  .flow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dest-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

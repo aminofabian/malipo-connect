@@ -1,5 +1,5 @@
 ---
-import WizardLayout from "../layouts/WizardLayout.astro";
+import AppLayout from "../layouts/AppLayout.astro";
 import { parseDestination } from "../lib/destination";
 import {
   CUSTOM_BANK_ID,
@@ -59,240 +59,286 @@ const bankCatalog = Object.fromEntries(
 );
 ---
 
-<WizardLayout title="Receive payments · Malipo Connect" step={1} nav current="destinations">
-  <h1>Where should payments be received?</h1>
-  <p class="lede">
-    When a customer pays, they get an M-Pesa push on their phone. After they enter their PIN, the
-    money is sent to the till, paybill, or bank account you choose here.
-  </p>
-
-  {error && <p class="err" role="alert">{error}</p>}
-
-  {
-    saved.length > 0 && (
-      <section class="saved-dests" aria-label="Saved destinations">
-        <p class="saved-dests-hint">
-          You have {saved.length} saved destination{saved.length === 1 ? "" : "s"}
-          {activeSaved && (
-            <>
-              {" — "}
-              <strong>{savedDestinationLabel(activeSaved)}</strong> is receiving payments
-            </>
-          )}
-          .
-        </p>
-        <div class="actions">
-          <a class="btn btn-ghost" href="/destinations">Manage destinations</a>
-        </div>
-      </section>
-    )
-  }
-
-  <h2 class="section-kicker">
-    {saved.length > 0 ? "Add another destination" : "Add a destination"}
-  </h2>
-
-  <form method="post" action="/destination" id="dest-form" data-kind={kind}>
-    <div class="choice" role="radiogroup" aria-label="Destination type">
-      <label>
-        <input type="radio" name="kind" value="till" checked={kind === "till"} />
-        <span>
-          <strong>Buy Goods till</strong>
-          <em>Money is sent to this till when a customer pays</em>
-        </span>
-      </label>
-      <label>
-        <input type="radio" name="kind" value="paybill" checked={kind === "paybill"} />
-        <span>
-          <strong>Business paybill</strong>
-          <em>Money is sent to this paybill when a customer pays</em>
-        </span>
-      </label>
-      <label>
-        <input type="radio" name="kind" value="bank" checked={kind === "bank"} />
-        <span>
-          <strong>Bank account</strong>
-          <em>Money is sent to this bank account when a customer pays</em>
-        </span>
-      </label>
+<AppLayout
+  title="Add a destination"
+  section="Setup"
+  step={1}
+  current="destinations"
+  email={gate.email}
+>
+  <header class="page-head">
+    <div>
+      <span class="page-kicker">Step 1 of 4</span>
+      <h1>Where should payments be received?</h1>
+      <p class="lede">
+        When a customer pays, they get an M-Pesa push on their phone. After they enter their PIN,
+        the money is sent to the till, paybill, or bank account you choose here.
+      </p>
     </div>
+    <div class="page-actions">
+      <a class="btn btn-ghost" href="/destinations">Manage destinations</a>
+    </div>
+  </header>
 
-    <div class="panels">
-      <!-- TILL only -->
-      <section class="panel" data-panel="till" aria-label="Till details">
-        <div class="field">
-          <label for="till">Till number</label>
-          <input
-            id="till"
-            name="till"
-            inputmode="numeric"
-            autocomplete="off"
-            placeholder="e.g. 5738421"
-            maxlength="7"
-          />
-        </div>
-      </section>
+  <div class="split">
+    <div class="blocks">
+      {error && <p class="callout callout-error" role="alert">{error}</p>}
 
-      <!-- PAYBILL only -->
-      <section class="panel" data-panel="paybill" aria-label="Paybill details">
-        <div class="field">
-          <label for="paybill">Paybill business number</label>
-          <input
-            id="paybill"
-            name="paybill"
-            inputmode="numeric"
-            autocomplete="off"
-            placeholder="e.g. 123456"
-            maxlength="7"
-          />
-        </div>
-        <div class="field">
-          <label for="account">Account number</label>
-          <input
-            id="account"
-            name="account"
-            autocomplete="off"
-            placeholder="What customers type as Account"
-            maxlength="32"
-          />
-        </div>
-      </section>
+      {
+        saved.length > 0 && (
+          <div class="callout callout-ok">
+            <span class="callout-title">
+              You already have {saved.length} saved destination{saved.length === 1 ? "" : "s"}
+              {activeSaved && <> — {savedDestinationLabel(activeSaved)} is receiving payments</>}.
+            </span>
+            <a href="/destinations" style="font-weight: 500">
+              View them before adding another
+            </a>
+          </div>
+        )
+      }
 
-      <!-- BANK only -->
-      <section class="panel" data-panel="bank" aria-label="Bank details">
-        <p class="bank-kicker">Quick pick</p>
-        <div class="bank-chips" role="group" aria-label="Popular banks">
-          {
-            banksPopular.map((b) => (
-              <button
-                type="button"
-                class="bank-chip"
-                data-bank-id={b.id}
-                data-paybill={b.businessNumber}
-                data-name={b.name}
-              >
-                <span class="bank-chip-name">
-                  {b.name.replace(/ Bank.*$/, "").replace(/ \(.*\)/, "")}
+      <form method="post" action="/destination" id="dest-form" data-kind={kind}>
+        <section class="card" aria-labelledby="kind-heading">
+          <div class="card-head">
+            <h2 id="kind-heading">{saved.length > 0 ? "Add another destination" : "Add a destination"}</h2>
+          </div>
+
+          <div class="card-body blocks">
+            <div class="choice choice-grid" role="radiogroup" aria-label="Destination type">
+              <label>
+                <input type="radio" name="kind" value="till" checked={kind === "till"} />
+                <span>
+                  <strong>Buy Goods till</strong>
+                  <em>Money is sent to this till when a customer pays</em>
                 </span>
-                <span class="bank-chip-pb">{b.businessNumber}</span>
-              </button>
-            ))
-          }
-        </div>
+              </label>
+              <label>
+                <input type="radio" name="kind" value="paybill" checked={kind === "paybill"} />
+                <span>
+                  <strong>Business paybill</strong>
+                  <em>Money is sent to this paybill when a customer pays</em>
+                </span>
+              </label>
+              <label>
+                <input type="radio" name="kind" value="bank" checked={kind === "bank"} />
+                <span>
+                  <strong>Bank account</strong>
+                  <em>Money is sent to this bank account when a customer pays</em>
+                </span>
+              </label>
+            </div>
 
-        <div class="field" style="margin-top: 1rem">
-          <label for="bank_id">Or choose any bank</label>
-          <select id="bank_id" name="bank_id">
-            <option value="">Select your bank…</option>
-            <optgroup label="Popular">
-              {
-                banksPopular.map((b) => (
-                  <option value={b.id} data-paybill={b.businessNumber} data-name={b.name}>
-                    {b.name} · {b.businessNumber}
-                  </option>
-                ))
-              }
-            </optgroup>
-            <optgroup label="All banks">
-              {
-                banksRest.map((b) => (
-                  <option value={b.id} data-paybill={b.businessNumber} data-name={b.name}>
-                    {b.name} · {b.businessNumber}
-                  </option>
-                ))
-              }
-            </optgroup>
-            <option value={CUSTOM_BANK_ID}>Other bank — enter paybill yourself</option>
-          </select>
-        </div>
+            <div class="panels">
+              <!-- TILL only -->
+              <section class="panel" data-panel="till" aria-label="Till details">
+                <div class="panel-inner">
+                  <div class="field field-sm">
+                    <label for="till">Till number</label>
+                    <input
+                      id="till"
+                      name="till"
+                      inputmode="numeric"
+                      autocomplete="off"
+                      placeholder="e.g. 5738421"
+                      maxlength="7"
+                    />
+                    <span class="field-hint">
+                      The number on your M-Pesa till. Nothing to set up at Safaricom.
+                    </span>
+                  </div>
+                </div>
+              </section>
 
-        <div class="settle-card" id="settle-card" hidden>
-          <div class="settle-card-top">
-            <span class="settle-label">Lipa Na M-Pesa details</span>
-            <span class="settle-badge">auto-filled</span>
+              <!-- PAYBILL only -->
+              <section class="panel" data-panel="paybill" aria-label="Paybill details">
+                <div class="panel-inner">
+                  <div class="form-grid">
+                    <div class="field field-sm">
+                      <label for="paybill">Paybill business number</label>
+                      <input
+                        id="paybill"
+                        name="paybill"
+                        inputmode="numeric"
+                        autocomplete="off"
+                        placeholder="e.g. 123456"
+                        maxlength="7"
+                      />
+                    </div>
+                    <div class="field field-sm">
+                      <label for="account">Account number</label>
+                      <input
+                        id="account"
+                        name="account"
+                        autocomplete="off"
+                        placeholder="What customers type as Account"
+                        maxlength="32"
+                      />
+                    </div>
+                  </div>
+                  <p class="field-hint">Use the exact account number your customers will type.</p>
+                </div>
+              </section>
+
+              <!-- BANK only -->
+              <section class="panel" data-panel="bank" aria-label="Bank details">
+                <div class="panel-inner">
+                  <p class="bank-kicker">Quick pick</p>
+                  <div class="bank-chips" role="group" aria-label="Popular banks">
+                    {
+                      banksPopular.map((b) => (
+                        <button
+                          type="button"
+                          class="bank-chip"
+                          data-bank-id={b.id}
+                          data-paybill={b.businessNumber}
+                          data-name={b.name}
+                        >
+                          <span class="bank-chip-name">
+                            {b.name.replace(/ Bank.*$/, "").replace(/ \(.*\)/, "")}
+                          </span>
+                          <span class="bank-chip-pb">{b.businessNumber}</span>
+                        </button>
+                      ))
+                    }
+                  </div>
+
+                  <div class="field">
+                    <label for="bank_id">Or choose any bank</label>
+                    <select id="bank_id" name="bank_id">
+                      <option value="">Select your bank…</option>
+                      <optgroup label="Popular">
+                        {
+                          banksPopular.map((b) => (
+                            <option value={b.id} data-paybill={b.businessNumber} data-name={b.name}>
+                              {b.name} · {b.businessNumber}
+                            </option>
+                          ))
+                        }
+                      </optgroup>
+                      <optgroup label="All banks">
+                        {
+                          banksRest.map((b) => (
+                            <option value={b.id} data-paybill={b.businessNumber} data-name={b.name}>
+                              {b.name} · {b.businessNumber}
+                            </option>
+                          ))
+                        }
+                      </optgroup>
+                      <option value={CUSTOM_BANK_ID}>Other bank — enter paybill yourself</option>
+                    </select>
+                  </div>
+
+                  <div class="settle-card" id="settle-card" hidden>
+                    <div class="settle-card-top">
+                      <span class="settle-label">Lipa Na M-Pesa details</span>
+                      <span class="badge">auto-filled</span>
+                    </div>
+                    <div class="kv">
+                      <div class="kv-row">
+                        <span class="kv-key">Bank</span>
+                        <span class="kv-val" id="settle-bank-name">—</span>
+                      </div>
+                      <div class="kv-row">
+                        <span class="kv-key">Business number</span>
+                        <span class="kv-val mono" id="settle-paybill">—</span>
+                      </div>
+                    </div>
+                    <p class="field-hint" style="margin-top: var(--s3)">
+                      You don’t type the paybill — only the account number your bank issued for M-Pesa
+                      deposits.
+                    </p>
+                  </div>
+
+                  <div class="field" id="bank-custom" hidden>
+                    <div class="form-grid">
+                      <div class="field">
+                        <label for="custom_bank_name">Bank name</label>
+                        <input
+                          id="custom_bank_name"
+                          name="custom_bank_name"
+                          autocomplete="organization"
+                          placeholder="e.g. My local bank"
+                          maxlength="80"
+                        />
+                      </div>
+                      <div class="field field-sm">
+                        <label for="custom_paybill">Bank’s M-Pesa paybill</label>
+                        <input
+                          id="custom_paybill"
+                          name="custom_paybill"
+                          inputmode="numeric"
+                          autocomplete="off"
+                          placeholder="5–7 digit business number"
+                          maxlength="7"
+                        />
+                        <span class="field-hint">
+                          From your bank’s Lipa Na M-Pesa deposit instructions.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="field field-sm-wide" id="bank-account-wrap" hidden>
+                    <label for="bank_account">Your bank account number</label>
+                    <input
+                      id="bank_account"
+                      name="bank_account"
+                      inputmode="numeric"
+                      autocomplete="off"
+                      placeholder="Account number for M-Pesa deposits"
+                      maxlength="32"
+                    />
+                    <span class="field-hint" id="bank-account-hint"></span>
+                  </div>
+
+                  <div class="preview" id="bank-preview" hidden>
+                    <span class="preview-kicker">Customer phone will show</span>
+                    <span class="preview-value" id="bank-preview-text">—</span>
+                  </div>
+                </div>
+              </section>
+            </div>
           </div>
-          <div class="settle-row">
-            <span>Bank</span>
-            <strong id="settle-bank-name">—</strong>
+
+          <div class="card-foot">
+            <button type="submit" class="btn btn-primary">Continue</button>
+            <a class="btn btn-ghost" href="/">Cancel</a>
           </div>
-          <div class="settle-row">
-            <span>Business number</span>
-            <strong class="tabular" id="settle-paybill">—</strong>
-          </div>
-          <p class="settle-hint">
-            You don’t type the paybill — only the account number your bank issued for M-Pesa
-            deposits.
+        </section>
+      </form>
+    </div>
+
+    <aside class="aside">
+      <details class="explainer" open>
+        <summary>Not sure which to pick?</summary>
+        <div class="explainer-body">
+          <p>
+            <strong>Buy Goods till</strong> — the number on your M-Pesa till. Money lands instantly
+            and there is nothing to set up at Safaricom.
           </p>
+          <p>
+            <strong>Business paybill</strong> — a paybill you own, plus the account number your
+            customers will type. Use the exact account number.
+          </p>
+          <p>
+            <strong>Bank account</strong> — settle straight to your bank. You only type the account
+            number your bank issued for M-Pesa deposits; the paybill is filled in for you.
+          </p>
+          <p>You can save more than one and switch the default whenever you like.</p>
         </div>
+      </details>
 
-        <div class="bank-custom" id="bank-custom" hidden>
-          <div class="field">
-            <label for="custom_bank_name">Bank name</label>
-            <input
-              id="custom_bank_name"
-              name="custom_bank_name"
-              autocomplete="organization"
-              placeholder="e.g. My local bank"
-              maxlength="80"
-            />
-          </div>
-          <div class="field">
-            <label for="custom_paybill">Bank’s M-Pesa paybill</label>
-            <input
-              id="custom_paybill"
-              name="custom_paybill"
-              inputmode="numeric"
-              autocomplete="off"
-              placeholder="5–7 digit business number"
-              maxlength="7"
-            />
-            <span class="field-hint">From your bank’s Lipa Na M-Pesa deposit instructions.</span>
-          </div>
-        </div>
-
-        <div class="field" id="bank-account-wrap" hidden>
-          <label for="bank_account">Your bank account number</label>
-          <input
-            id="bank_account"
-            name="bank_account"
-            inputmode="numeric"
-            autocomplete="off"
-            placeholder="Account number for M-Pesa deposits"
-            maxlength="32"
-          />
-          <span class="field-hint" id="bank-account-hint"></span>
-        </div>
-
-        <div class="preview-line" id="bank-preview" hidden>
-          <span class="preview-kicker">Customer phone will show</span>
-          <strong id="bank-preview-text">—</strong>
-        </div>
-      </section>
-    </div>
-
-    <div class="actions">
-      <button type="submit" class="btn btn-primary">Continue</button>
-      <a class="btn btn-ghost" href="/">Back</a>
-    </div>
-  </form>
-
-  <details class="explainer">
-    <summary>Not sure which to pick?</summary>
-    <p>
-      <strong>Buy Goods till</strong> — the number on your M-Pesa till. Money lands instantly and
-      there is nothing to set up at Safaricom.
-    </p>
-    <p>
-      <strong>Business paybill</strong> — a paybill you own, plus the account number your customers
-      will type. Use the exact account number.
-    </p>
-    <p>
-      <strong>Bank account</strong> — settle straight to your bank. You only type the account number
-      your bank issued for M-Pesa deposits; the paybill is filled in for you.
-    </p>
-    <p>You can save more than one and switch the default whenever you like.</p>
-  </details>
-</WizardLayout>
+      <div class="soft">
+        <p class="section-kicker">Before you continue</p>
+        <p class="note">
+          A wrong number sends money to someone else. Double-check the digits against what your
+          customer will actually type on their phone.
+        </p>
+      </div>
+    </aside>
+  </div>
+</AppLayout>
 
 <script define:vars={{ bankCatalog, CUSTOM_BANK_ID }}>
   const form = document.getElementById("dest-form");

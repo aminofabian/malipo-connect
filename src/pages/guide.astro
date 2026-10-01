@@ -1,52 +1,79 @@
 ---
-import WizardLayout from "../layouts/WizardLayout.astro";
+import AppLayout from "../layouts/AppLayout.astro";
 
 export const prerender = true;
----
 
-{/*
+const toc = [
+  { id: "key", label: "Your key" },
+  { id: "create", label: "Create a payment" },
+  { id: "result", label: "Wait for settled" },
+  { id: "example", label: "Full example" },
+  { id: "status", label: "Status" },
+  { id: "callback", label: "Callbacks" },
+  { id: "reference", label: "Reference" },
+];
+
+/*
   Mirrors docs/INTEGRATION.md. Keep the code samples in both copies in sync —
   `npm run check:guide` (scripts/check-guide-sync.mjs) fails the build if they drift.
-*/}
-<WizardLayout title="Take a payment · Malipo Connect" wide>
-  <h1>Take a payment</h1>
-  <p class="lede">
-    One request puts an M-Pesa prompt on your customer's phone. When they enter their PIN, the money
-    lands in the till, paybill, or bank you confirmed. You do not create a Daraja app, and you do not
-    register a webhook.
-  </p>
+*/
+---
+<AppLayout title="Take a payment" section="Guide" current="guide" bare>
+  <header class="doc-topbar">
+    <a class="brand" href="/">
+      <strong>Malipo</strong>
+      <span class="rail-tag">Connect</span>
+    </a>
+    <a class="btn btn-ghost btn-sm" href="/keys">Back to your request</a>
+  </header>
 
-  <nav class="guide-nav" aria-label="On this page">
-    <a href="#key">Your key</a>
-    <a href="#create">Create a payment</a>
-    <a href="#result">Wait for settled</a>
-    <a href="#example">Example</a>
-    <a href="#callback">Callbacks</a>
-    <a href="#reference">Reference</a>
-  </nav>
+  <div class="doc">
+    <nav class="doc-toc" aria-label="On this page">
+      <p class="doc-toc-title">On this page</p>
+      <ul>
+        {toc.map((entry) => (
+          <li>
+            <a href={`#${entry.id}`}>{entry.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
 
-  <section id="key">
-    <h2>1. Get your key</h2>
-    <p>
-      In Malipo Connect, enter where money should land and confirm it. The next screen shows a
-      ready-made request; the key inside it starts with <code>sk_live_</code>.
-    </p>
-    <p>Send that key on every request:</p>
-    <pre class="snippet">Authorization: Bearer sk_live_…</pre>
-    <p>
-      The key is shown once. If you lose it, rotate it in Connect — the old key stops working
-      immediately.
-    </p>
-    <p>
-      The base URL is the one in the request Connect copied for you. In production that is
-      <code>https://api.kiosk.ke</code>.
-    </p>
-  </section>
+    <article class="doc-body">
+      <header class="page-head">
+        <div>
+          <span class="page-kicker">Integration guide</span>
+          <h1>Take a payment</h1>
+          <p class="lede">
+            One request puts an M-Pesa prompt on your customer's phone. When they enter their PIN,
+            the money lands in the till, paybill, or bank you confirmed. You do not create a Daraja
+            app, and you do not register a webhook.
+          </p>
+        </div>
+      </header>
 
-  <section id="create">
-    <h2>2. Create the payment</h2>
-    <p><code>POST /v1/payments</code> sends the prompt to the customer's phone.</p>
-    <pre class="snippet">{`curl -X POST https://api.kiosk.ke/v1/payments \\
+      <section id="key" class="doc-section">
+        <h2>1. Get your key</h2>
+        <p>
+          In Malipo Connect, enter where money should land and confirm it. The next screen shows a
+          ready-made request; the key inside it starts with <code>sk_live_</code>.
+        </p>
+        <p>Send that key on every request:</p>
+        <pre class="snippet">Authorization: Bearer sk_live_…</pre>
+        <p>
+          The key is shown once. If you lose it, rotate it in Connect — the old key stops working
+          immediately.
+        </p>
+        <p>
+          The base URL is the one in the request Connect copied for you. In production that is{" "}
+          <code>https://api.kiosk.ke</code>.
+        </p>
+      </section>
+
+      <section id="create" class="doc-section">
+        <h2>2. Create the payment</h2>
+        <p><code>POST /v1/payments</code> sends the prompt to the customer's phone.</p>
+        <pre class="snippet">{`curl -X POST https://api.kiosk.ke/v1/payments \\
   -H "Authorization: Bearer sk_live_…" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -54,8 +81,8 @@ export const prerender = true;
     "customer_phone": "254712345678",
     "idempotency_key": "order-1042-1"
   }'`}</pre>
-    <p>The response is <code>201 Created</code>:</p>
-    <pre class="snippet">{`{
+        <p>The response is <code>201 Created</code>:</p>
+        <pre class="snippet">{`{
   "id": "8f3a1c2e-4b5d-4e6f-9a0b-1c2d3e4f5a6b",
   "status": "pending",
   "amount": "100.00",
@@ -64,32 +91,32 @@ export const prerender = true;
   "failure_kind": null,
   "failure_message": null
 }`}</pre>
-    <p>
-      <code>status</code> starts at <code>pending</code>: the prompt is on their phone. It stays open
-      for about 90 seconds. After that, a payment the customer did not complete becomes
-      <code>failed</code>.
-    </p>
-    <p>
-      Sending the same <code>idempotency_key</code> again does not prompt the phone a second time.
-      You get <code>200 OK</code> with the original payment.
-    </p>
-  </section>
+        <p>
+          <code>status</code> starts at <code>pending</code>: the prompt is on their phone. It stays
+          open for about 90 seconds. After that, a payment the customer did not complete becomes{" "}
+          <code>failed</code>.
+        </p>
+        <p>
+          Sending the same <code>idempotency_key</code> again does not prompt the phone a second
+          time. You get <code>200 OK</code> with the original payment.
+        </p>
+      </section>
 
-  <section id="result">
-    <h2>3. Wait for settled</h2>
-    <p>Ask for the payment until it leaves <code>pending</code>:</p>
-    <pre class="snippet">{`curl https://api.kiosk.ke/v1/payments/8f3a1c2e-4b5d-4e6f-9a0b-1c2d3e4f5a6b \\
+      <section id="result" class="doc-section">
+        <h2>3. Wait for settled</h2>
+        <p>Ask for the payment until it leaves <code>pending</code>:</p>
+        <pre class="snippet">{`curl https://api.kiosk.ke/v1/payments/8f3a1c2e-4b5d-4e6f-9a0b-1c2d3e4f5a6b \\
   -H "Authorization: Bearer sk_live_…"`}</pre>
-    <p class="rule">
-      Treat the payment as paid only when a <code>GET</code> returns
-      <code>"status": "settled"</code>. When it does, <code>receipt</code> is the M-Pesa receipt
-      code.
-    </p>
-  </section>
+        <p class="rule">
+          Treat the payment as paid only when a <code>GET</code> returns{" "}
+          <code>"status": "settled"</code>. When it does, <code>receipt</code> is the M-Pesa receipt
+          code.
+        </p>
+      </section>
 
-  <section id="example">
-    <h2>The whole thing in one function</h2>
-    <pre class="snippet">{`const BASE = "https://api.kiosk.ke";
+      <section id="example" class="doc-section">
+        <h2>The whole thing in one function</h2>
+        <pre class="snippet">{`const BASE = "https://api.kiosk.ke";
 const headers = {
   authorization: "Bearer " + process.env.MALIPO_SECRET_KEY, // your sk_live_…
   "content-type": "application/json",
@@ -118,43 +145,46 @@ if (payment.status === "settled") {
 } else {
   order.showError(payment.failure_message);
 }`}</pre>
-    <p>That is the whole integration. The rest of this page is reference.</p>
-  </section>
+        <p>That is the whole integration. The rest of this page is reference.</p>
+      </section>
 
-  <section id="status">
-    <h2>Status</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Status</th>
-          <th>Meaning</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>pending</code></td>
-          <td>The prompt is on their phone, or Malipo is still waiting for M-Pesa.</td>
-        </tr>
-        <tr>
-          <td><code>settled</code></td>
-          <td>They paid. <code>receipt</code> is the M-Pesa receipt code.</td>
-        </tr>
-        <tr>
-          <td><code>failed</code></td>
-          <td>They cancelled, timed out, or M-Pesa rejected the prompt. Read <code>failure_kind</code> and <code>failure_message</code>.</td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
+      <section id="status" class="doc-section">
+        <h2>Status</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>pending</code></td>
+              <td>The prompt is on their phone, or Malipo is still waiting for M-Pesa.</td>
+            </tr>
+            <tr>
+              <td><code>settled</code></td>
+              <td>They paid. <code>receipt</code> is the M-Pesa receipt code.</td>
+            </tr>
+            <tr>
+              <td><code>failed</code></td>
+              <td>
+                They cancelled, timed out, or M-Pesa rejected the prompt. Read{" "}
+                <code>failure_kind</code> and <code>failure_message</code>.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-  <section id="callback">
-    <h2>Callbacks instead of polling</h2>
-    <p>
-      If you would rather be pushed the result, send an <code>https</code>
-      <code>callback_url</code> when you create the payment. Malipo POSTs there when the payment
-      settles or fails, and retries if your server does not answer <code>2xx</code> quickly.
-    </p>
-    <pre class="snippet">{`{
+      <section id="callback" class="doc-section">
+        <h2>Callbacks instead of polling</h2>
+        <p>
+          If you would rather be pushed the result, send an <code>https</code>
+          <code>callback_url</code> when you create the payment. Malipo POSTs there when the payment
+          settles or fails, and retries if your server does not answer <code>2xx</code> quickly.
+        </p>
+        <pre class="snippet">{`{
   "id": "evt_8f3a1c2e4b5d4e6f9a0b1c2d3e4f5a6b",
   "event": "payment.settled",
   "created_at": "2026-09-29T07:41:00Z",
@@ -167,29 +197,32 @@ if (payment.status === "settled") {
     "receipt": "QKH7XYZ123"
   }
 }`}</pre>
-    <p>
-      A failure sends <code>"event": "payment.failed"</code> and <code>"status": "failed"</code>,
-      with <code>failure_kind</code> and <code>failure_message</code> instead of <code>receipt</code>.
-    </p>
-    <p>
-      When the POST arrives, call <code>GET /v1/payments/{"{id}"}</code> with <code>data.id</code>
-      and follow the same rule: mark the order paid only if that GET returns <code>settled</code>.
-    </p>
-    <p>
-      <code>callback_url</code> must be <code>https</code>. <code>http://localhost</code> and
-      <code>http://127.0.0.1</code> are accepted so you can test on your own machine.
-    </p>
+        <p>
+          A failure sends <code>"event": "payment.failed"</code> and <code>"status": "failed"</code>,
+          with <code>failure_kind</code> and <code>failure_message</code> instead of{" "}
+          <code>receipt</code>.
+        </p>
+        <p>
+          When the POST arrives, call <code>GET /v1/payments/{"{id}"}</code> with{" "}
+          <code>data.id</code> and follow the same rule: mark the order paid only if that GET
+          returns <code>settled</code>.
+        </p>
+        <p>
+          <code>callback_url</code> must be <code>https</code>.{" "}
+          <code>http://localhost</code> and <code>http://127.0.0.1</code> are accepted so you can
+          test on your own machine.
+        </p>
 
-    <h3 id="verify">Verify the callback (optional)</h3>
-    <p>
-      Every callback is signed, so you can check it really came from Malipo. Take an HMAC-SHA256 of
-      the <strong>raw request body</strong> using your webhook signing secret (the
-      <code>whsec_…</code> shown in Connect), and compare it to the <code>X-Malipo-Signature</code>
-      header:
-    </p>
-    <pre class="snippet">{`X-Malipo-Signature: sha256=<hex digest>`}</pre>
-    <p>In Node:</p>
-    <pre class="snippet">{`import { createHmac, timingSafeEqual } from "node:crypto";
+        <h3 id="verify">Verify the callback (optional)</h3>
+        <p>
+          Every callback is signed, so you can check it really came from Malipo. Take an HMAC-SHA256
+          of the <strong>raw request body</strong> using your webhook signing secret (the{" "}
+          <code>whsec_…</code> shown in Connect), and compare it to the{" "}
+          <code>X-Malipo-Signature</code> header:
+        </p>
+        <pre class="snippet">{`X-Malipo-Signature: sha256=<hex digest>`}</pre>
+        <p>In Node:</p>
+        <pre class="snippet">{`import { createHmac, timingSafeEqual } from "node:crypto";
 
 const expected = createHmac("sha256", process.env.MALIPO_WEBHOOK_SECRET)
   .update(rawBody) // the exact bytes you received, not a re-serialized object
@@ -199,279 +232,339 @@ const got = Buffer.from((req.get("x-malipo-signature") || "").replace(/^sha256=/
 if (got.length !== expected.length || !timingSafeEqual(got, expected)) {
   return res.sendStatus(400);
 }`}</pre>
-    <p>
-      Verifying is optional. Confirming with <code>GET /v1/payments/{"{id}"}</code> — and treating
-      the payment as paid only when it returns <code>settled</code> — is simpler and is enough on
-      its own.
-    </p>
-  </section>
+        <p>
+          Verifying is optional. Confirming with <code>GET /v1/payments/{"{id}"}</code> — and
+          treating the payment as paid only when it returns <code>settled</code> — is simpler and is
+          enough on its own.
+        </p>
+      </section>
 
-  <section id="reference">
-    <h2>Reference</h2>
+      <section id="reference" class="doc-section">
+        <h2>Reference</h2>
 
-    <h3>Request fields</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Field</th>
-          <th>Required</th>
-          <th>What to send</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>amount</code></td>
-          <td>yes</td>
-          <td>Shillings, as a decimal string greater than zero. <code>"100.00"</code></td>
-        </tr>
-        <tr>
-          <td><code>customer_phone</code></td>
-          <td>yes</td>
-          <td>
-            A Kenyan mobile number. <code>254712345678</code>, <code>0712345678</code>, and
-            <code>712345678</code> are the same number. <code>07…</code> and <code>01…</code> both
-            work.
-          </td>
-        </tr>
-        <tr>
-          <td><code>idempotency_key</code></td>
-          <td>yes</td>
-          <td>8 to 191 characters, unique per attempt. Send the same key again to retry safely.</td>
-        </tr>
-        <tr>
-          <td><code>reference</code></td>
-          <td>no</td>
-          <td>Your order or invoice id. It comes back on the payment and on the callback.</td>
-        </tr>
-        <tr>
-          <td><code>callback_url</code></td>
-          <td>no</td>
-          <td>An <code>https</code> URL to POST the result to. Leave it out and poll instead.</td>
-        </tr>
-        <tr>
-          <td><code>currency</code></td>
-          <td>no</td>
-          <td>Defaults to <code>KES</code>.</td>
-        </tr>
-      </tbody>
-    </table>
+        <h3>Request fields</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Required</th>
+              <th>What to send</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>amount</code></td>
+              <td>yes</td>
+              <td>Shillings, as a decimal string greater than zero. <code>"100.00"</code></td>
+            </tr>
+            <tr>
+              <td><code>customer_phone</code></td>
+              <td>yes</td>
+              <td>
+                A Kenyan mobile number. <code>254712345678</code>, <code>0712345678</code>, and{" "}
+                <code>712345678</code> are the same number. <code>07…</code> and <code>01…</code>
+                both work.
+              </td>
+            </tr>
+            <tr>
+              <td><code>idempotency_key</code></td>
+              <td>yes</td>
+              <td>
+                8 to 191 characters, unique per attempt. Send the same key again to retry safely.
+              </td>
+            </tr>
+            <tr>
+              <td><code>reference</code></td>
+              <td>no</td>
+              <td>Your order or invoice id. It comes back on the payment and on the callback.</td>
+            </tr>
+            <tr>
+              <td><code>callback_url</code></td>
+              <td>no</td>
+              <td>
+                An <code>https</code> URL to POST the result to. Leave it out and poll instead.
+              </td>
+            </tr>
+            <tr>
+              <td><code>currency</code></td>
+              <td>no</td>
+              <td>Defaults to <code>KES</code>.</td>
+            </tr>
+          </tbody>
+        </table>
 
-    <h3>Why a payment failed</h3>
-    <table>
-      <thead>
-        <tr>
-          <th><code>failure_kind</code></th>
-          <th>What happened</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>customer_declined</code></td>
-          <td>The customer rejected the prompt.</td>
-        </tr>
-        <tr>
-          <td><code>subscriber_cancelled</code></td>
-          <td>The customer cancelled it.</td>
-        </tr>
-        <tr>
-          <td><code>customer_timeout</code></td>
-          <td>They did not enter a PIN in time.</td>
-        </tr>
-        <tr>
-          <td><code>timeout</code></td>
-          <td>M-Pesa did not finish in time.</td>
-        </tr>
-        <tr>
-          <td><code>insufficient_funds</code></td>
-          <td>The phone did not have enough money.</td>
-        </tr>
-        <tr>
-          <td><code>wrong_pin</code></td>
-          <td>The PIN was wrong.</td>
-        </tr>
-        <tr>
-          <td><code>expired</code></td>
-          <td>The prompt window closed before M-Pesa reported a result.</td>
-        </tr>
-      </tbody>
-    </table>
-    <p>
-      Other kinds mean the prompt did not complete. Show <code>failure_message</code> to the customer
-      and start a new payment with a new <code>idempotency_key</code>.
-    </p>
+        <h3>Why a payment failed</h3>
+        <table>
+          <thead>
+            <tr>
+              <th><code>failure_kind</code></th>
+              <th>What happened</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>customer_declined</code></td>
+              <td>The customer rejected the prompt.</td>
+            </tr>
+            <tr>
+              <td><code>subscriber_cancelled</code></td>
+              <td>The customer cancelled it.</td>
+            </tr>
+            <tr>
+              <td><code>customer_timeout</code></td>
+              <td>They did not enter a PIN in time.</td>
+            </tr>
+            <tr>
+              <td><code>timeout</code></td>
+              <td>M-Pesa did not finish in time.</td>
+            </tr>
+            <tr>
+              <td><code>insufficient_funds</code></td>
+              <td>The phone did not have enough money.</td>
+            </tr>
+            <tr>
+              <td><code>wrong_pin</code></td>
+              <td>The PIN was wrong.</td>
+            </tr>
+            <tr>
+              <td><code>expired</code></td>
+              <td>The prompt window closed before M-Pesa reported a result.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Other kinds mean the prompt did not complete. Show <code>failure_message</code> to the
+          customer and start a new payment with a new <code>idempotency_key</code>.
+        </p>
 
-    <h3>Errors</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>HTTP</th>
-          <th><code>error</code></th>
-          <th>What to do</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>401</td>
-          <td><code>unauthorized</code></td>
-          <td>The key is missing, wrong, or has been rotated.</td>
-        </tr>
-        <tr>
-          <td>409</td>
-          <td><code>destination_inactive</code></td>
-          <td>Confirm a till, paybill, or bank in Connect first.</td>
-        </tr>
-        <tr>
-          <td>422</td>
-          <td><code>invalid_phone</code></td>
-          <td>Send a Kenyan mobile number.</td>
-        </tr>
-        <tr>
-          <td>422</td>
-          <td><code>invalid_callback_url</code></td>
-          <td>Use an <code>https</code> URL, or leave <code>callback_url</code> out.</td>
-        </tr>
-        <tr>
-          <td>422</td>
-          <td><code>invalid</code></td>
-          <td>
-            A required field is missing or too short. <code>idempotency_key</code> must be at least
-            8 characters.
-          </td>
-        </tr>
-        <tr>
-          <td>422</td>
-          <td><code>rail_failure</code></td>
-          <td>M-Pesa rejected the prompt before it could be sent. Read <code>message</code>.</td>
-        </tr>
-        <tr>
-          <td>404</td>
-          <td><code>not_found</code></td>
-          <td>That payment id is not yours.</td>
-        </tr>
-      </tbody>
-    </table>
+        <h3>Errors</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>HTTP</th>
+              <th><code>error</code></th>
+              <th>What to do</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>401</td>
+              <td><code>unauthorized</code></td>
+              <td>The key is missing, wrong, or has been rotated.</td>
+            </tr>
+            <tr>
+              <td>409</td>
+              <td><code>destination_inactive</code></td>
+              <td>Confirm a till, paybill, or bank in Connect first.</td>
+            </tr>
+            <tr>
+              <td>422</td>
+              <td><code>invalid_phone</code></td>
+              <td>Send a Kenyan mobile number.</td>
+            </tr>
+            <tr>
+              <td>422</td>
+              <td><code>invalid_callback_url</code></td>
+              <td>
+                Use an <code>https</code> URL, or leave <code>callback_url</code> out.
+              </td>
+            </tr>
+            <tr>
+              <td>422</td>
+              <td><code>invalid</code></td>
+              <td>
+                A required field is missing or too short. <code>idempotency_key</code> must be at
+                least 8 characters.
+              </td>
+            </tr>
+            <tr>
+              <td>422</td>
+              <td><code>rail_failure</code></td>
+              <td>M-Pesa rejected the prompt before it could be sent. Read <code>message</code>.</td>
+            </tr>
+            <tr>
+              <td>404</td>
+              <td><code>not_found</code></td>
+              <td>That payment id is not yours.</td>
+            </tr>
+          </tbody>
+        </table>
 
-    <h3>Retrying safely</h3>
-    <p>
-      Use one <code>idempotency_key</code> per checkout attempt, for example
-      <code>order-1042-1</code>. If your server times out and you are not sure the first call
-      arrived, send the exact same request again and you get the original payment back.
-    </p>
-    <p>
-      To ask the customer to pay again after a failure, use a new key, such as
-      <code>order-1042-2</code>.
-    </p>
-  </section>
+        <h3>Retrying safely</h3>
+        <p>
+          Use one <code>idempotency_key</code> per checkout attempt, for example{" "}
+          <code>order-1042-1</code>. If your server times out and you are not sure the first call
+          arrived, send the exact same request again and you get the original payment back.
+        </p>
+        <p>
+          To ask the customer to pay again after a failure, use a new key, such as{" "}
+          <code>order-1042-2</code>.
+        </p>
+      </section>
 
-  <div class="actions">
-    <a class="btn btn-accent" href="/keys">Back to your request</a>
-    <a class="btn btn-ghost" href="/">Home</a>
+      <div class="actions">
+        <a class="btn btn-accent" href="/keys">Back to your request</a>
+        <a class="btn btn-ghost" href="/">Home</a>
+      </div>
+    </article>
   </div>
-</WizardLayout>
+</AppLayout>
 
 <style>
-  .guide-nav {
+  /* This page renders without the app rail, so it carries its own header. */
+  .doc-topbar {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem 1rem;
-    margin: -0.5rem 0 1.75rem;
-    font-size: 0.85rem;
-  }
-
-  .guide-nav a {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--ink-muted);
-    text-decoration: none;
-    padding-bottom: 0.2rem;
-    border-bottom: 1.5px solid transparent;
-    transition:
-      color var(--dur-fast) ease,
-      border-color var(--dur-fast) ease;
-  }
-
-  .guide-nav a:hover {
-    color: var(--ink);
-    border-bottom-color: var(--ink);
-  }
-
-  section {
-    margin: 0 0 2rem;
-  }
-
-  h2 {
-    margin: 0 0 0.65rem;
-    font-size: 1.15rem;
-    letter-spacing: -0.03em;
-  }
-
-  h3 {
-    margin: 1.25rem 0 0.45rem;
-    font-size: 0.95rem;
-  }
-
-  p,
-  li {
-    color: var(--ink-muted);
-    line-height: 1.55;
-    font-size: 0.92rem;
-  }
-
-  ol {
-    margin: 0 0 1rem;
-    padding-left: 1.2rem;
-  }
-
-  code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.84em;
-  }
-
-  .rule {
-    margin: 1rem 0 1.25rem;
-    padding: 1rem 1.15rem;
-    border: 1px solid rgba(254, 242, 127, 0.9);
-    border-radius: 16px;
-    background: linear-gradient(135deg, rgba(254, 242, 127, 0.5), rgba(255, 255, 255, 0.72));
-    color: var(--ink);
-    font-weight: 600;
-    line-height: 1.55;
-  }
-
-  .snippet {
-    margin: 0.75rem 0 1rem;
-    padding: 1rem 1.1rem;
-    overflow-x: auto;
-    border-radius: 14px;
-    background: #111;
-    color: var(--yellow);
-    box-shadow: var(--shadow-sm);
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    line-height: 1.6;
-    white-space: pre-wrap;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0.5rem 0 1rem;
-    font-size: 0.82rem;
-    line-height: 1.45;
-  }
-
-  th,
-  td {
-    text-align: left;
-    vertical-align: top;
-    padding: 0.55rem 0.45rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s4);
+    width: min(100%, 72rem);
+    margin-inline: auto;
+    padding: var(--s4) var(--gutter);
     border-bottom: 1px solid var(--line);
   }
 
-  th {
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
+  .doc-topbar .brand {
+    color: var(--ink);
+  }
+
+  .doc-topbar .rail-tag {
+    color: var(--ink-faint);
+  }
+
+  /* Read mode: a sticky contents rail beside a measured measure of prose. */
+  .doc {
+    display: grid;
+    grid-template-columns: 15rem minmax(0, 1fr);
+    gap: var(--s8);
+    width: min(100%, 72rem);
+    margin-inline: auto;
+    padding: var(--s7) var(--gutter) var(--s9);
+    align-items: start;
+  }
+
+  .doc-toc {
+    position: sticky;
+    top: var(--s5);
+  }
+
+  .doc-toc-title {
+    margin-bottom: var(--s3);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--ink-faint);
+  }
+
+  .doc-toc ul {
+    display: grid;
+    gap: 0.1rem;
+    margin: 0;
+    list-style: none;
+  }
+
+  .doc-toc a {
+    display: block;
+    padding: 0.3rem 0.6rem;
+    border-left: 2px solid var(--line);
+    color: var(--ink-muted);
+    font-size: var(--fs-sm);
+    text-decoration: none;
+    transition: border-color var(--dur-fast) ease, color var(--dur-fast) ease;
+  }
+
+  .doc-toc a:hover {
+    border-left-color: var(--yellow-deep);
+    color: var(--ink);
+  }
+
+  .doc-body {
+    max-width: 46rem;
+  }
+
+  .doc-section {
+    margin-bottom: var(--s8);
+  }
+
+  .doc-section h2 {
+    margin-bottom: var(--s3);
+    font-size: var(--fs-xl);
+  }
+
+  .doc-section h3 {
+    margin: var(--s6) 0 var(--s3);
+    font-size: var(--fs-lg);
+  }
+
+  /* Anchored sections must clear the sticky top bar. */
+  .doc-section :is(h2, h3),
+  .doc-section[id] {
+    scroll-margin-top: 5rem;
+  }
+
+  .doc-body p {
+    margin-bottom: var(--s3);
+    color: var(--ink-muted);
+    font-size: var(--fs-base);
+    line-height: 1.7;
+  }
+
+  .doc-body .snippet {
+    margin-bottom: var(--s4);
+    /* Doc samples wrap instead of scrolling sideways — they're read, not run. */
+    white-space: pre-wrap;
+  }
+
+  .rule {
+    padding: var(--s4) var(--s5);
+    border: 1px solid color-mix(in srgb, var(--yellow) 80%, var(--line));
+    border-radius: var(--r-lg);
+    background: linear-gradient(135deg, rgba(254, 242, 127, 0.45), rgba(255, 255, 255, 0.7));
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .doc-body table {
+    width: 100%;
+    margin-bottom: var(--s4);
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+  }
+
+  .doc-body :is(th, td) {
+    padding: var(--s3);
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--line-soft);
+    line-height: 1.5;
+  }
+
+  .doc-body :is(th, td):first-child {
+    padding-left: 0;
+  }
+
+  .doc-body th {
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .doc-body tbody tr:hover td {
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  @media (max-width: 1080px) {
+    .doc {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s6);
+    }
+
+    .doc-toc {
+      position: static;
+      padding-bottom: var(--s4);
+      border-bottom: 1px solid var(--line);
+    }
   }
 </style>

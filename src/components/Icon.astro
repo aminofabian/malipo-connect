@@ -1,0 +1,31 @@
+---
+/**
+ * Inline 20px stroke icons for the rail. Kept local so the shell carries no
+ * icon-library dependency. Every glyph uses `currentColor`, so the nav sets
+ * colour per state (active, hover, muted).
+ */
+interface Props {
+  name: "grid" | "pin" | "key" | "sliders" | "book";
+}
+
+const { name } = Astro.props;
+
+const glyphs: Record<Props["name"], string> = {
+  grid: `<rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/>`,
+  pin: `<path d="M16 8.5c0 4.2-6 9-6 9s-6-4.8-6-9a6 6 0 1 1 12 0Z"/><circle cx="10" cy="8.5" r="2.25"/>`,
+  key: `<circle cx="7.5" cy="10" r="3.75"/><path d="M11.25 10H17M14.5 10v2.5M16.25 10v1.75"/>`,
+  sliders: `<path d="M3 5.5h4M10.5 5.5H17M3 14.5h6.5M13 14.5H17"/><circle cx="8.75" cy="5.5" r="1.75"/><circle cx="11.25" cy="14.5" r="1.75"/>`,
+  book: `<path d="M3.5 4.75A1.25 1.25 0 0 1 4.75 3.5H9v13H4.75a1.25 1.25 0 0 1-1.25-1.25Z"/><path d="M16.5 4.75a1.25 1.25 0 0 0-1.25-1.25H11v13h4.25a1.25 1.25 0 0 0 1.25-1.25Z"/>`,
+};
+---
+
+<svg
+  viewBox="0 0 20 20"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  set:html={glyphs[name]}
+/>

@@ -1,0 +1,210 @@
+---
+import "@fontsource-variable/sora";
+import "../styles/tokens.css";
+import "../styles/shell.css";
+import "../styles/components.css";
+import Icon from "../components/Icon.astro";
+
+interface Props {
+  title?: string;
+  /** Marks the active rail item. */
+  current?: "home" | "destinations" | "keys" | "settings" | "guide";
+  /** Section label shown in the top bar, left of the page title. */
+  section?: string;
+  /** Progress step for the setup wizard (1–4). */
+  step?: 1 | 2 | 3 | 4;
+  /** Signed-in merchant, shown in the top bar. */
+  email?: string | null;
+  /** Suppresses the rail for pages that are their own layout (sign-in, guide). */
+  bare?: boolean;
+}
+
+const { title = "Malipo Connect", current, section, step, email, bare = false } = Astro.props;
+
+const nav = [
+  {
+    group: "Payments",
+    links: [
+      { key: "home", href: "/", label: "Overview", icon: "grid" },
+      { key: "destinations", href: "/destinations", label: "Destinations", icon: "pin" },
+      { key: "keys", href: "/keys", label: "Keys & requests", icon: "key" },
+    ],
+  },
+  {
+    group: "Account",
+    links: [
+      { key: "settings", href: "/settings", label: "Settings", icon: "sliders" },
+      { key: "guide", href: "/guide", label: "Guide", icon: "book" },
+    ],
+  },
+] as const;
+
+const stepLabels = ["Destination", "Confirm", "Keys", "Test"];
+
+const initial = (email ?? "?").trim().charAt(0).toUpperCase() || "?";
+---
+
+<!doctype html>
+<html lang="en-KE">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta
+      name="description"
+      content="Add a till, paybill, or bank to receive M-Pesa payments. Customers get a push; money goes to you. Copy one request to charge a phone."
+    />
+    <title>{title}</title>
+  </head>
+  <body>
+    {
+      bare ? (
+        <slot />
+      ) : (
+        <div class="app">
+          <aside class="rail">
+            <a class="brand" href="/">
+              <strong>Malipo</strong>
+              <span class="rail-tag">Connect</span>
+            </a>
+
+            {nav.map((group) => (
+              <nav class="nav-group" aria-label={group.group}>
+                <p class="nav-label">{group.group}</p>
+                {group.links.map((link) => (
+                  <a
+                    class:list={["navlink", { "navlink-on": current === link.key }]}
+                    href={link.href}
+                    aria-current={current === link.key ? "page" : undefined}
+                  >
+                    <Icon name={link.icon} />
+                    {link.label}
+                  </a>
+                ))}
+              </nav>
+            ))}
+
+            <div class="rail-foot">
+              <span class="svc-tag">
+                <span id="svc-dot" class="svc-dot" data-state="unknown" aria-hidden="true" />
+                Payments service
+              </span>
+              <a class="navlink navlink-out" href="/api/session/logout">Sign out</a>
+            </div>
+          </aside>
+
+          <div class="canvas">
+            <div class="topbar">
+              <p class="topbar-trail">
+                {section && (
+                  <>
+                    <span>{section}</span>
+                    <span class="sep" aria-hidden="true">/</span>
+                  </>
+                )}
+                <strong>{title}</strong>
+              </p>
+              <div class="topbar-right">
+                {email && (
+                  <span class="topbar-user">
+                    <span class="avatar" aria-hidden="true">{initial}</span>
+                    <span>{email}</span>
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <main class="page">
+              <div
+                id="svc-banner"
+                class="svc-banner"
+                role="status"
+                aria-live="polite"
+                hidden
+              >
+                <div class="svc-banner-text">
+                  <strong>Payments service is degraded.</strong>
+                  <span>
+                    Some steps may not save or load right now. Please try again shortly.
+                  </span>
+                </div>
+                <button type="button" class="svc-dismiss" data-dismiss aria-label="Dismiss">
+                  <span aria-hidden="true">×</span>
+                </button>
+              </div>
+
+              {step != null && (
+                <ol class="steps" aria-label="Setup progress">
+                  {stepLabels.map((label, i) => {
+                    const n = (i + 1) as 1 | 2 | 3 | 4;
+                    return (
+                      <li data-on={step >= n} aria-current={step === n ? "step" : undefined}>
+                        <b>{n}</b>
+                        <span>{label}</span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+
+              <slot />
+            </main>
+          </div>
+        </div>
+      )
+    }
+  </body>
+</html>
+
+<script>
+  // At-a-glance health + a dismissible banner, so a down back-end is visible
+  // instead of leaving the merchant with blank or redirecting pages.
+  // Readiness probe is `/healthz` (non-OK => degraded).
+  (() => {
+    const DISMISS_KEY = "mc-svc-banner-dismissed";
+    const banner = document.getElementById("svc-banner");
+    const dot = document.getElementById("svc-dot");
+    if (!banner && !dot) return;
+
+    const setDot = (state: string) => {
+      if (dot) dot.dataset.state = state;
+    };
+
+    const revealBanner = () => {
+      if (!banner) return;
+      try {
+        if (sessionStorage.getItem(DISMISS_KEY) === "1") return;
+      } catch {
+        /* private mode — just show it */
+      }
+      banner.removeAttribute("hidden");
+    };
+
+    banner?.querySelector("[data-dismiss]")?.addEventListener("click", () => {
+      banner.setAttribute("hidden", "");
+      try {
+        sessionStorage.setItem(DISMISS_KEY, "1");
+      } catch {
+        /* ignore */
+      }
+    });
+
+    (async () => {
+      try {
+        const res = await fetch("/healthz", {
+          headers: { accept: "application/json" },
+          cache: "no-store",
+        });
+        if (res.ok) {
+          setDot("up");
+          return;
+        }
+        setDot("down");
+        revealBanner();
+      } catch {
+        setDot("down");
+        revealBanner();
+      }
+    })();
+  })();
+</script>

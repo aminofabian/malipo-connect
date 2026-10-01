@@ -1,5 +1,5 @@
 ---
-import WizardLayout from "../layouts/WizardLayout.astro";
+import AuthLayout from "../layouts/AuthLayout.astro";
 import { malipoConfigured, registerAccount } from "../lib/malipo";
 import { decodeConnectSession, setConnectSession } from "../lib/session";
 
@@ -59,13 +59,24 @@ if (Astro.request.method === "POST") {
 }
 ---
 
-<WizardLayout title="Create account · Malipo Connect">
-  <h1>Create your account</h1>
-  <p class="lede">One account for destinations, keys, and test payments.</p>
+<AuthLayout
+  title="Create account · Malipo Connect"
+  heading="Set up payments in a few minutes"
+  lede="Create an account, confirm where money should land, and start sending M-Pesa prompts."
+  points={[
+    { title: "Add a destination", body: "A till, paybill, or bank account that receives the money." },
+    { title: "Copy one request", body: "Your key and a ready-made request, ready to paste." },
+    { title: "Get paid", body: "Customers approve an M-Pesa prompt on their own phone." },
+  ]}
+>
+  <h1 style="font-size: var(--fs-2xl)">Create your account</h1>
+  <p class="lede" style="color: var(--ink-muted); margin-top: var(--s2); margin-bottom: var(--s6)">
+    One account for destinations, keys, and test payments.
+  </p>
 
   {
     error && (
-      <p class="err" role="alert">
+      <p class="callout callout-error" role="alert">
         {error}
       </p>
     )
@@ -79,6 +90,7 @@ if (Astro.request.method === "POST") {
         name="display_name"
         type="text"
         autocomplete="organization"
+        autofocus
         value={nameValue}
       />
     </div>
@@ -103,6 +115,7 @@ if (Astro.request.method === "POST") {
         required
         minlength="8"
       />
+      <span class="field-hint">At least 8 characters.</span>
     </div>
     <div class="field">
       <label for="password_confirm">Confirm password</label>
@@ -116,11 +129,11 @@ if (Astro.request.method === "POST") {
       />
     </div>
     <div class="actions">
-      <button type="submit" class="btn btn-primary">Create account</button>
+      <button type="submit" class="btn btn-primary btn-block">Create account</button>
     </div>
   </form>
 
-  <p class="note" style="margin-top: 1.5rem">
+  <p class="note" style="margin-top: var(--s6)">
     Already have an account? <a href={`/signin?next=${encodeURIComponent(next)}`}>Sign in</a>
   </p>
-</WizardLayout>
+</AuthLayout>

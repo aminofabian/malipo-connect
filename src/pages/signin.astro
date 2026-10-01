@@ -1,5 +1,5 @@
 ---
-import WizardLayout from "../layouts/WizardLayout.astro";
+import AuthLayout from "../layouts/AuthLayout.astro";
 import { loginAccount, malipoConfigured } from "../lib/malipo";
 import { decodeConnectSession, setConnectSession } from "../lib/session";
 
@@ -49,13 +49,24 @@ if (Astro.request.method === "POST") {
 }
 ---
 
-<WizardLayout title="Sign in · Malipo Connect">
-  <h1>Sign in</h1>
-  <p class="lede">Use your Malipo Connect account — email and password.</p>
+<AuthLayout
+  title="Sign in · Malipo Connect"
+  heading="Start taking M-Pesa payments"
+  lede="One account holds your destination, your API keys, and every payment you take."
+  points={[
+    { title: "Add a destination", body: "A till, paybill, or bank account that receives the money." },
+    { title: "Copy one request", body: "Your key and a ready-made request, ready to paste." },
+    { title: "Get paid", body: "Customers approve an M-Pesa prompt on their own phone." },
+  ]}
+>
+  <h1 style="font-size: var(--fs-2xl)">Sign in</h1>
+  <p class="lede" style="color: var(--ink-muted); margin-top: var(--s2); margin-bottom: var(--s6)">
+    Use your Malipo Connect account — email and password.
+  </p>
 
   {
     error && (
-      <p class="err" role="alert">
+      <p class="callout callout-error" role="alert">
         {error}
       </p>
     )
@@ -70,6 +81,7 @@ if (Astro.request.method === "POST") {
         type="email"
         autocomplete="username"
         required
+        autofocus
         value={emailValue}
       />
     </div>
@@ -85,11 +97,11 @@ if (Astro.request.method === "POST") {
       />
     </div>
     <div class="actions">
-      <button type="submit" class="btn btn-primary">Sign in</button>
+      <button type="submit" class="btn btn-primary btn-block">Sign in</button>
     </div>
   </form>
 
-  <p class="note" style="margin-top: 1.5rem">
+  <p class="note" style="margin-top: var(--s6)">
     New here? <a href={`/signup?next=${encodeURIComponent(next)}`}>Create an account</a>
   </p>
-</WizardLayout>
+</AuthLayout>

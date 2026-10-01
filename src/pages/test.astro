@@ -1,5 +1,5 @@
 ---
-import WizardLayout from "../layouts/WizardLayout.astro";
+import AppLayout from "../layouts/AppLayout.astro";
 import TestPayment from "../islands/TestPayment";
 import { requireMerchant } from "../lib/session";
 import { syncFromService } from "../lib/store";
@@ -27,16 +27,54 @@ function initialAmount(raw: string | null): string {
 const amount = initialAmount(Astro.url.searchParams.get("amount"));
 ---
 
-<WizardLayout title="Test payment · Malipo Connect" step={4} nav current="keys">
-  <h1>Send a test payment</h1>
-  <p class="lede">
-    Pay from your phone. You’ll get an M-Pesa push; when the money reaches your till, paybill, or
-    bank, you know it works. Some banks reject KES 1 — pick an amount they accept.
-  </p>
+<AppLayout title="Send a test payment" section="Payments" step={4} current="keys" email={gate.email}>
+  <header class="page-head">
+    <div>
+      <span class="page-kicker">Step 4 of 4</span>
+      <h1>Send a test payment</h1>
+      <p class="lede">
+        Pay from your phone. You’ll get an M-Pesa push; when the money reaches your till, paybill,
+        or bank, you know it works. Some banks reject KES 1 — pick an amount they accept.
+      </p>
+    </div>
+    <div class="page-actions">
+      <a class="btn btn-ghost" href="/keys">Back to keys</a>
+    </div>
+  </header>
 
-  <TestPayment client:load tenantId={tenantId} initialAmount={amount} />
+  <div class="split">
+    <TestPayment client:load tenantId={tenantId} initialAmount={amount} />
 
-  <div class="actions" style="margin-top: 1.25rem">
-    <a class="btn btn-ghost" href="/keys">Back to keys</a>
+    <aside class="aside">
+      <section class="card">
+        <div class="card-head">
+          <h2>What happens next</h2>
+        </div>
+        <div class="card-body">
+          <ol class="flow" style="grid-template-columns: minmax(0,1fr)">
+            <li>
+              <b>01</b>
+              <span>We send an M-Pesa prompt to your phone.</span>
+            </li>
+            <li>
+              <b>02</b>
+              <span>You enter your PIN and approve the payment.</span>
+            </li>
+            <li>
+              <b>03</b>
+              <span>The money lands in your destination and this page confirms it.</span>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <div class="soft">
+        <p class="section-kicker">If it fails</p>
+        <p class="note">
+          Some banks reject very small amounts. Try KES 10, and check that your destination is
+          confirmed and set as default on the <a href="/destinations">Destinations</a> page.
+        </p>
+      </div>
+    </aside>
   </div>
-</WizardLayout>
+</AppLayout>

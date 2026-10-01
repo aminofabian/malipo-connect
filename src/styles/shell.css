@@ -1,0 +1,541 @@
+/* ============================================================================
+   Malipo Connect — layer 2 of 3: application chrome
+   ----------------------------------------------------------------------------
+   The app is an operations surface, so it gets app chrome: a persistent ink
+   rail for navigation, a glass top bar for identity and service health, and a
+   wide canvas that the page content lays out on.
+
+   Everything below assumes a desktop viewport first and degrades by dropping
+   the rail to a stacked header rather than by re-flowing every component.
+   ========================================================================= */
+
+.app {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  min-height: 100dvh;
+}
+
+/* --- rail ----------------------------------------------------------------- */
+
+.rail {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s6);
+  height: 100dvh;
+  padding: var(--s5) var(--s4);
+  /* The brand's pale-yellow beam, bled across the top of the rail. */
+  border-top: 3px solid var(--yellow);
+  background: var(--ink);
+  color: #fff;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #fff;
+  text-decoration: none;
+}
+
+.brand::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: var(--r-full);
+  background: var(--yellow);
+  box-shadow: 0 0 0 3px rgba(254, 242, 127, 0.2);
+}
+
+.brand strong {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.rail-tag {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+/* Nav is a labelled group so four bare links stop reading as a row of tabs. */
+.nav-group {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.nav-label {
+  padding: 0 var(--s3) var(--s2);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.34);
+}
+
+.navlink {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem var(--s3);
+  border-radius: var(--r-sm);
+  color: rgba(255, 255, 255, 0.62);
+  font-size: var(--fs-md);
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    background var(--dur-fast) ease,
+    color var(--dur-fast) ease;
+}
+
+.navlink:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+
+/* Active page: yellow marker plus a lifted ground — legible without a heavy pill. */
+.navlink-on {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-weight: 600;
+}
+
+.navlink-on::before {
+  content: "";
+  position: absolute;
+  left: -1rem;
+  top: 50%;
+  width: 3px;
+  height: 1.1rem;
+  border-radius: var(--r-full);
+  background: var(--yellow);
+  transform: translateY(-50%);
+}
+
+.navlink svg {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  opacity: 0.7;
+}
+
+.navlink-on svg {
+  opacity: 1;
+}
+
+.navlink-out {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+/* --- rail footer: service health ------------------------------------------ */
+
+.rail-foot {
+  margin-top: auto;
+  display: grid;
+  gap: var(--s3);
+  padding-top: var(--s4);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.svc-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.svc-dot {
+  flex: 0 0 auto;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.svc-dot[data-state="up"] {
+  background: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.18);
+}
+
+.svc-dot[data-state="down"] {
+  background: #f87171;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.18);
+}
+
+.svc-dot[data-state="unknown"] {
+  animation: svc-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes svc-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* --- canvas --------------------------------------------------------------- */
+
+.canvas {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* --- top bar -------------------------------------------------------------- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  padding: 0 var(--gutter);
+  height: 3.5rem;
+  border-bottom: 1px solid var(--line);
+  /* Translucent over the beams — keeps the ground visible as it scrolls under. */
+  background: rgba(191, 195, 199, 0.72);
+  backdrop-filter: blur(14px) saturate(1.3);
+}
+
+.topbar-trail {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-faint);
+}
+
+.topbar-trail strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.topbar-trail .sep {
+  opacity: 0.4;
+}
+
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--fs-sm);
+  color: var(--ink-muted);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: var(--r-full);
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* --- page ----------------------------------------------------------------- */
+
+.page {
+  width: min(100%, var(--canvas));
+  margin-inline: auto;
+  padding: var(--s7) var(--gutter) var(--s9);
+}
+
+/* The canonical page header: identity on the left, actions on the right. */
+.page-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--s4) var(--s6);
+  padding-bottom: var(--s5);
+  margin-bottom: var(--s6);
+  border-bottom: 1px solid var(--line);
+}
+
+.page-kicker {
+  display: block;
+  margin-bottom: var(--s2);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+.page-head h1 {
+  font-size: var(--fs-3xl);
+  letter-spacing: -0.04em;
+}
+
+.page-head .lede {
+  max-width: 58ch;
+  margin-top: var(--s3);
+  color: var(--ink-muted);
+  font-size: var(--fs-base);
+  line-height: 1.6;
+}
+
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+}
+
+/* --- stepper -------------------------------------------------------------- */
+
+/* Replaces the old four grey pills: a connected rail where completed steps
+   are marked, so progress reads left-to-right at a glance. */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin-bottom: var(--s7);
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding-bottom: 0.85rem;
+  font-size: var(--fs-sm);
+  color: var(--ink-faint);
+}
+
+.steps li b {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faint);
+  transition: all var(--dur) var(--ease-out);
+}
+
+.steps li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Connector: a line that fills in behind the steps already taken. */
+.steps li::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: var(--r-full);
+  background: var(--line);
+}
+
+.steps li[data-on="true"] b {
+  border-color: var(--teal);
+  background: var(--teal);
+  color: #fff;
+}
+
+.steps li[data-on="true"]::after {
+  background: var(--teal);
+}
+
+.steps li[aria-current] b {
+  border-color: var(--ink);
+  background: var(--yellow);
+  color: var(--ink);
+  box-shadow: 0 0 0 4px var(--yellow-wash);
+}
+
+.steps li[aria-current] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.steps li[aria-current]::after {
+  background: linear-gradient(90deg, var(--ink) 0 50%, var(--line) 50% 100%);
+}
+
+/* --- degraded-service banner ---------------------------------------------- */
+
+.svc-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s3);
+  margin-bottom: var(--s5);
+  padding: var(--s3) var(--s4);
+  border: 1px solid rgba(155, 28, 28, 0.28);
+  border-radius: var(--r-md);
+  background: rgba(155, 28, 28, 0.07);
+  color: var(--danger);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+.svc-banner[hidden] {
+  display: none;
+}
+
+.svc-banner-text {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.svc-banner-text strong {
+  font-weight: 600;
+}
+
+.svc-banner-text span {
+  color: var(--ink-muted);
+}
+
+.svc-dismiss {
+  margin-left: auto;
+  padding: 0 var(--s2);
+  border: 0;
+  background: transparent;
+  color: var(--danger);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--dur-fast) ease;
+}
+
+.svc-dismiss:hover {
+  opacity: 1;
+}
+
+/* --- auth pages (no rail) -------------------------------------------------- */
+
+.auth {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+  min-height: 100dvh;
+}
+
+/* Left: the pitch. Right: the form. */
+.auth-pitch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s6);
+  justify-content: center;
+  padding: var(--s9) var(--s8);
+  border-top: 3px solid var(--yellow);
+  border-right: 1px solid var(--line);
+  background: var(--ink);
+  color: #fff;
+}
+
+.auth-pitch h2 {
+  max-width: 16ch;
+  font-size: var(--fs-2xl);
+  letter-spacing: -0.04em;
+}
+
+.auth-pitch p {
+  max-width: 46ch;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: var(--fs-base);
+  line-height: 1.65;
+}
+
+.auth-form-wrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--s9) var(--gutter);
+}
+
+.auth-form {
+  width: min(100%, 26rem);
+  margin-inline: auto;
+}
+
+/* --- responsive ----------------------------------------------------------- */
+
+/* Rail collapses into a top-of-page header; the grid keeps its desktop order. */
+@media (max-width: 1080px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rail {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s4);
+    padding: var(--s4);
+  }
+
+  .nav-group {
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    gap: var(--s1);
+  }
+
+  .nav-label,
+  .navlink-on::before {
+    display: none;
+  }
+
+  .rail-foot {
+    margin: 0 0 0 auto;
+    padding: 0;
+    border: 0;
+  }
+
+  .page-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .auth {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .auth-pitch {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: var(--s7) var(--gutter);
+  }
+}

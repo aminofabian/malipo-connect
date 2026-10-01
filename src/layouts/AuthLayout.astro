@@ -1,0 +1,61 @@
+---
+import "@fontsource-variable/sora";
+import "../styles/tokens.css";
+import "../styles/shell.css";
+import "../styles/components.css";
+
+interface Props {
+  title: string;
+  heading: string;
+  lede: string;
+  points: { title: string; body: string }[];
+}
+
+const { title, heading, lede, points } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en-KE">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="robots" content="noindex" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <div class="auth">
+      <section class="auth-pitch">
+        <a class="brand" href="/">
+          <strong>Malipo</strong>
+          <span class="rail-tag">Connect</span>
+        </a>
+
+        <div>
+          <h2>{heading}</h2>
+          <p>{lede}</p>
+        </div>
+
+        <ul class="flow" style="color: #fff">
+          {
+            points.map((point, i) => (
+              <li style="background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.12)">
+                <b style="color: var(--yellow)">0{i + 1}</b>
+                <span style="color: #fff">
+                  <strong style="display: block; margin-bottom: 2px">{point.title}</strong>
+                  {point.body}
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="auth-form-wrap">
+        <div class="auth-form">
+          <slot />
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

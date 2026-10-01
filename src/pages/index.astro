@@ -1,5 +1,5 @@
 ---
-import WizardLayout from "../layouts/WizardLayout.astro";
+import AppLayout from "../layouts/AppLayout.astro";
 import { savedDestinationLabel, savedDestinationStatus } from "../lib/destination";
 import type { SavedDestinationSummary } from "../lib/destination";
 import { listDestinations, malipoConfigured } from "../lib/malipo";
@@ -53,94 +53,187 @@ const steps = [
 const doneCount = steps.filter((s) => s.done).length;
 ---
 
-<WizardLayout title="Malipo Connect" nav current="home">
-  {
-    merchant.email && (
-      <p class="note" role="status">
-        Signed in as <code>{merchant.email}</code>
+<AppLayout
+  title="Overview"
+  section="Payments"
+  current="home"
+  email={merchant.email}
+>
+  <header class="page-head">
+    <div>
+      <span class="page-kicker">Receive M-Pesa payments</span>
+      <h1>Your setup at a glance</h1>
+      <p class="lede">
+        Money lands in the till, paybill, or bank account you confirm. Customers get an M-Pesa push
+        on their phone; once they enter their PIN, it arrives with you.
       </p>
-    )
-  }
-  <h1>Receive M-Pesa payments</h1>
-  <p class="lede">
-    Add the till, paybill, or bank account that should receive money when a customer pays. Customers
-    get an M-Pesa push on their phone; after they enter their PIN, the money goes to you. Then you
-    copy one request and send it.
-  </p>
-
-  {
-    ready ? (
-      <p class="status-ok">
-        Ready — payments land in {savedDestinationLabel(active!)}
-        {active && <span> ({savedDestinationStatus(active).label.toLowerCase()})</span>}.
-      </p>
-    ) : (
-      <p class="warn-once" role="status">
-        Not taking payments yet. Finish the steps below to go live.
-      </p>
-    )
-  }
-
-  {
-    receivedCount > 0 && (
-      <p class="received-summary" role="status">
-        Received <strong>{kes(receivedTotal)}</strong> across {receivedCount} settled payment
-        {receivedCount === 1 ? "" : "s"}.
-      </p>
-    )
-  }
-
-  <section class="settings-block" aria-label="Setup progress">
-    <h2 class="settings-title">
-      Setup — {doneCount} of {steps.length} done
-    </h2>
-    <ul class="checklist">
-      {steps.map((step) => (
-        <li class:list={["checklist-item", { "checklist-done": step.done }]}>
-          <span class="checklist-mark" aria-hidden="true">{step.done ? "✓" : "○"}</span>
-          <a class="checklist-label" href={step.href}>
-            {step.label}
+    </div>
+    <div class="page-actions">
+      {
+        ready ? (
+          <a class="btn btn-primary" href="/keys">
+            View your request
           </a>
-          {step.optional && !step.done && <span class="checklist-tag">optional</span>}
-        </li>
-      ))}
-    </ul>
-  </section>
+        ) : (
+          <a class="btn btn-primary" href="/destination">
+            Get started
+          </a>
+        )
+      }
+      <a class="btn btn-ghost" href="/destinations">
+        Destinations{dests.length > 0 ? ` (${dests.length})` : ""}
+      </a>
+    </div>
+  </header>
 
-  <section class="settings-block" aria-label="How it works">
-    <h2 class="settings-title">How it works</h2>
-    <ol class="flow" aria-label="How it works">
-      <li>
-        <b>01</b>
-        <span>Add where money lands</span>
-      </li>
-      <li>
-        <b>02</b>
-        <span>Copy one request</span>
-      </li>
-      <li>
-        <b>03</b>
-        <span>Get paid</span>
-      </li>
-    </ol>
-  </section>
-
-  <div class="actions">
+  <div class="blocks">
     {
       ready ? (
-        <a class="btn btn-primary" href="/keys">
-          View your request
-        </a>
+        <p class="callout callout-ok" role="status">
+          <span class="callout-title">Ready — payments land in {savedDestinationLabel(active!)}.</span>
+          <span style="font-weight: 400">
+            {active && savedDestinationStatus(active).label}. Keep going by sending a test payment.
+          </span>
+        </p>
       ) : (
-        <a class="btn btn-primary" href="/destination">
-          Get started
-        </a>
+        <p class="callout callout-warn" role="status">
+          <span class="callout-title">Not taking payments yet.</span>
+          <span style="font-weight: 400">Finish the steps below to go live.</span>
+        </p>
       )
     }
-    <a class="btn btn-ghost" href="/destinations">
-      Destinations{dests.length > 0 ? ` (${dests.length})` : ""}
-    </a>
-    <a class="btn btn-ghost" href="/settings">Settings</a>
-    <a class="btn btn-ghost" href="/api/session/logout">Sign out</a>
+
+    {
+      receivedCount > 0 && (
+        <section class="summary-bar" aria-label="Received so far">
+          <span class="figure">
+            <span class="figure-value">{kes(receivedTotal)}</span>
+            <span class="figure-label">
+              received across {receivedCount} settled payment{receivedCount === 1 ? "" : "s"}
+            </span>
+          </span>
+          <a class="btn btn-ghost btn-sm" href="/keys?scope=all">
+            View all payments
+          </a>
+        </section>
+      )
+    }
+
+    <div class="split">
+      <div class="blocks">
+        <section class="card" aria-labelledby="setup-heading">
+          <div class="card-head">
+            <h2 id="setup-heading">Setup — {doneCount} of {steps.length} done</h2>
+            <a class="btn btn-ghost btn-sm" href="/settings">Settings</a>
+          </div>
+
+          <div class="card-body">
+            {
+              doneCount > 0 && (
+                <div class="progress" aria-hidden="true">
+                  <div
+                    class="progress-bar"
+                    style={`width: ${(doneCount / steps.length) * 100}%`}
+                  />
+                </div>
+              )
+            }
+            <p class="sr-only">
+              {doneCount} of {steps.length} setup steps complete.
+            </p>
+          </div>
+
+          <ul class="checklist" style="padding: 0 var(--s5) var(--s5)">
+            {steps.map((step) => (
+              <li class:list={["checklist-item", { "checklist-done": step.done }]}>
+                <span class="checklist-mark" aria-hidden="true">{step.done ? "✓" : "○"}</span>
+                <a class="checklist-label" href={step.href}>
+                  {step.label}
+                </a>
+                {step.optional && !step.done && <span class="checklist-tag">optional</span>}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section aria-labelledby="how-heading">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title" id="how-heading">How it works</h2>
+              <p class="section-hint">
+                The same three steps on every integration, whichever destination you choose.
+              </p>
+            </div>
+          </div>
+
+          <ol class="flow">
+            <li>
+              <b>01</b>
+              <span>Add where money lands</span>
+            </li>
+            <li>
+              <b>02</b>
+              <span>Copy one request</span>
+            </li>
+            <li>
+              <b>03</b>
+              <span>Get paid</span>
+            </li>
+          </ol>
+        </section>
+      </div>
+
+      <aside class="aside">
+        <section class="card" aria-labelledby="dest-heading">
+          <div class="card-head">
+            <h2 id="dest-heading">Destination</h2>
+          </div>
+          <div class="card-body">
+            {
+              active ? (
+                <>
+                  <span class="dest-hero-kicker">Receiving payments</span>
+                  <p class="dest-hero-label" style="font-size: var(--fs-lg); margin: var(--s2) 0">
+                    {savedDestinationLabel(active)}
+                  </p>
+                  <p class="dest-row-meta">
+                    {savedDestinationStatus(active).hint}
+                  </p>
+                </>
+              ) : (
+                <div class="empty" style="padding: var(--s5) var(--s4); border: 0; background: none">
+                  <p>
+                    No destination is receiving payments yet. Add a till, paybill, or bank account to
+                    get started.
+                  </p>
+                  <a class="btn btn-accent" href="/destination">
+                    Add a destination
+                  </a>
+                </div>
+              )
+            }
+          </div>
+          <div class="card-foot">
+            <a class="btn btn-ghost btn-sm" href="/destinations">Manage all</a>
+            <a class="btn btn-ghost btn-sm" href="/guide">Read the guide</a>
+          </div>
+        </section>
+
+        <details class="explainer">
+          <summary>Which key is which?</summary>
+          <div class="explainer-body">
+            <p>
+              <strong>Client secret</strong> (<code>sk_live_…</code>) authenticates your server on
+              every request. <strong>Webhook signing secret</strong> (<code>whsec_…</code>) proves
+              a callback came from Malipo. Both are shown once.
+            </p>
+            <p>
+              The <strong>client ID</strong> (<code>pk_live_…</code>) is not a secret — it is safe to
+              keep in your configuration.
+            </p>
+          </div>
+        </details>
+      </aside>
+    </div>
   </div>
-</WizardLayout>
+</AppLayout>

@@ -1,5 +1,5 @@
 ---
-import WizardLayout from "../layouts/WizardLayout.astro";
+import AppLayout from "../layouts/AppLayout.astro";
 import { confirmSentence } from "../lib/destination";
 import {
   clearDraft,
@@ -48,25 +48,50 @@ const name = draft.displayName ?? "Your business";
 const sentence = confirmSentence(draft);
 ---
 
-<WizardLayout title="Confirm · Malipo Connect" step={2}>
-  <h1>Does this look right?</h1>
-  <p class="lede">
-    Double-check. This is where money will be sent when a customer pays. A wrong number sends it to
-    someone else.
-  </p>
-
-  {error && <p class="err" role="alert">{error}</p>}
-
-  <div class="confirm-card">
-    <div class="who">Verified name</div>
-    <div class="name">{name}</div>
-    <p>{sentence}</p>
-  </div>
-
-  <form method="post" action="/confirm">
-    <div class="actions">
-      <button type="submit" class="btn btn-teal">Confirm</button>
-      <a class="btn btn-ghost" href="/destination">Edit</a>
+<AppLayout title="Confirm" section="Setup" step={2}>
+  <header class="page-head">
+    <div>
+      <span class="page-kicker">Step 2 of 4</span>
+      <h1>Does this look right?</h1>
+      <p class="lede">
+        Double-check. This is where money will be sent when a customer pays. A wrong number sends it
+        to someone else.
+      </p>
     </div>
-  </form>
-</WizardLayout>
+  </header>
+
+  {error && <p class="callout callout-error" role="alert">{error}</p>}
+
+  <div class="split">
+    <section class="card">
+      <div class="card-head">
+        <span class="section-kicker">Verified name</span>
+        <span class="pill pill-ok">Ready to confirm</span>
+      </div>
+      <div class="card-body">
+        <p
+          style="font-size: var(--fs-2xl); font-weight: 600; letter-spacing: -0.03em; margin-bottom: var(--s4)"
+        >
+          {name}
+        </p>
+        <p style="color: var(--ink-muted); line-height: 1.65">{sentence}</p>
+      </div>
+      <div class="card-foot">
+        <form method="post" action="/confirm" class="actions">
+          <button type="submit" class="btn btn-teal">Confirm</button>
+          <a class="btn btn-ghost" href="/destination">Edit</a>
+        </form>
+      </div>
+    </section>
+
+    <aside class="aside">
+      <div class="soft-yellow">
+        <p class="section-kicker" style="color: var(--ink)">Before you confirm</p>
+        <p class="note" style="color: var(--ink)">
+          Read the number back against what your customer will type on their phone. Confirming also
+          issues your API keys, which are shown once.
+        </p>
+      </div>
+    </aside>
+  </div>
+</AppLayout>
