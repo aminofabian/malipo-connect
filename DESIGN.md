@@ -26,7 +26,7 @@ ink CTAs, spaced wordmark, Sora, `--ease-out` motion. Nothing in the app invents
 | `--yellow` | `#fef27f` | Accent CTA, current step, beams, rail top bar |
 | `--mpesa` / `--teal` | `#0f6b68` | Kickers, verified states, focus ring |
 | `--danger` | `#9b1c1c` | Errors, degraded service |
-| `--r-xs` … `--r-xl` | `6px` … `24px` | Buttons are square-ish; cards are not |
+| `--r-xs` … `--r-xl` | `0px` | **No rounded corners.** Only `--r-full` (`999px`) remains, for true circles: the logo dot, the status dot, the avatar, the dot inside a status pill. |
 | Font | Sora Variable | Display + body |
 | Motion | `--ease-out` / `--dur*` | Entrances, hover lift |
 
@@ -58,6 +58,10 @@ pairing is the main organisational tool; content below it is grouped into `.card
 
 ## Rules
 
+- **Nothing has a rounded corner.** Cards, panels, buttons, fields, tables, code blocks, chips,
+  status tags, step badges, checklist boxes and meters are all square. A curve is reserved for
+  something that is genuinely a circle. Change this at the tokens, not per component — every
+  radius in the app goes through `--r-*`, so there are no hardcoded values to hunt down.
 - **One primary CTA per view.** Accent (`--yellow`) is reserved for the next step and destructive-
   feeling emphasis; primary (`--ink`) is the main action; everything else is ghost.
 - **Status is a dot plus a word.** `.pill` always renders a leading dot so state is not carried by

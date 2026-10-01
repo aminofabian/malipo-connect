@@ -37,11 +37,14 @@
   --line-strong: rgba(10, 10, 10, 0.28);
 
   /* --- radius ------------------------------------------------------------- */
-  --r-xs: 6px;
-  --r-sm: 10px;
-  --r-md: 14px;
-  --r-lg: 18px;
-  --r-xl: 24px;
+  /* No rounded corners. Every rectangular surface — cards, panels, buttons,
+     fields, tables, code, chips, meters — is square. Only true circles
+     (--r-full) keep a curve: the status dot, the logo dot, the avatar. */
+  --r-xs: 0px;
+  --r-sm: 0px;
+  --r-md: 0px;
+  --r-lg: 0px;
+  --r-xl: 0px;
   --r-full: 999px;
 
   /* --- spacing scale ------------------------------------------------------ */

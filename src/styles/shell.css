@@ -117,7 +117,6 @@
   top: 50%;
   width: 3px;
   height: 1.1rem;
-  border-radius: var(--r-full);
   background: var(--yellow);
   transform: translateY(-50%);
 }
@@ -341,7 +340,6 @@
   width: 1.5rem;
   height: 1.5rem;
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-full);
   background: var(--surface);
   font-size: 0.68rem;
   font-weight: 700;
@@ -364,7 +362,6 @@
   right: 0;
   bottom: 0;
   height: 2px;
-  border-radius: var(--r-full);
   background: var(--line);
 }
 
