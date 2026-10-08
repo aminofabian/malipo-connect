@@ -66,14 +66,14 @@ const toc = [
         </p>
         <p>
           The base URL is the one in the request Connect copied for you. In production that is{" "}
-          <code>https://api.kiosk.ke</code>.
+          <code>https://backend.kioskpay.co.ke</code>.
         </p>
       </section>
 
       <section id="create" class="doc-section">
         <h2>2. Create the payment</h2>
         <p><code>POST /v1/payments</code> sends the prompt to the customer's phone.</p>
-        <pre class="snippet">{`curl -X POST https://api.kiosk.ke/v1/payments \\
+        <pre class="snippet">{`curl -X POST https://backend.kioskpay.co.ke/v1/payments \\
   -H "Authorization: Bearer sk_live_…" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -105,7 +105,7 @@ const toc = [
       <section id="result" class="doc-section">
         <h2>3. Wait for settled</h2>
         <p>Ask for the payment until it leaves <code>pending</code>:</p>
-        <pre class="snippet">{`curl https://api.kiosk.ke/v1/payments/8f3a1c2e-4b5d-4e6f-9a0b-1c2d3e4f5a6b \\
+        <pre class="snippet">{`curl https://backend.kioskpay.co.ke/v1/payments/8f3a1c2e-4b5d-4e6f-9a0b-1c2d3e4f5a6b \\
   -H "Authorization: Bearer sk_live_…"`}</pre>
         <p class="rule">
           Treat the payment as paid only when a <code>GET</code> returns{" "}
@@ -116,7 +116,7 @@ const toc = [
 
       <section id="example" class="doc-section">
         <h2>The whole thing in one function</h2>
-        <pre class="snippet">{`const BASE = "https://api.kiosk.ke";
+        <pre class="snippet">{`const BASE = "https://backend.kioskpay.co.ke";
 const headers = {
   authorization: "Bearer " + process.env.MALIPO_SECRET_KEY, // your sk_live_…
   "content-type": "application/json",

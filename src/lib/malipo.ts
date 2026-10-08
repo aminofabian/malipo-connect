@@ -14,7 +14,7 @@ export function publicApiBase(): string {
   return (
     process.env.MALIPO_PUBLIC_API_URL?.replace(/\/$/, "") ||
     base() ||
-    "https://api.kiosk.ke"
+    "https://backend.kioskpay.co.ke"
   );
 }
 
