@@ -164,7 +164,7 @@ export function destinationKindLabel(kind: string): string {
   return kind;
 }
 
-export type DestinationTone = "on" | "ok" | "draft";
+export type DestinationTone = "on" | "ok" | "attn";
 
 export function savedDestinationStatus(d: SavedDestinationSummary): {
   label: string;
@@ -187,7 +187,7 @@ export function savedDestinationStatus(d: SavedDestinationSummary): {
   }
   return {
     label: "Needs confirmation",
-    tone: "draft",
+    tone: "attn",
     hint: "Confirm it before it can receive payments.",
   };
 }
@@ -206,13 +206,12 @@ export function savedDestinationFacts(d: SavedDestinationSummary): SavedDestinat
 
   if (d.kind === "paybill" || d.kind === "bank") {
     facts.push({
-      label: d.kind === "bank" ? "Lipa Na M-Pesa paybill" : "Paybill",
+      label: d.kind === "bank" ? "Lipa Na M‑Pesa paybill" : "Paybill",
       value: d.paybill_number ?? "—",
     });
     facts.push({ label: "Account number", value: d.account_number ?? "—" });
   }
 
-  if (d.display_name) facts.push({ label: "Label", value: d.display_name });
 
   return facts;
 }
@@ -220,20 +219,20 @@ export function savedDestinationFacts(d: SavedDestinationSummary): SavedDestinat
 /** One plain sentence of what happens when a customer pays into this destination. */
 export function savedDestinationSentence(d: SavedDestinationSummary): string {
   if (d.kind === "till") {
-    return `When a customer pays, they get an M-Pesa prompt on their phone. After their PIN, the money lands in till ${d.till_number ?? "—"}. Nothing to set up at Safaricom.`;
+    return `When a customer pays, they get an M‑Pesa prompt on their phone. After their PIN, the money lands in till ${d.till_number ?? "—"}. Nothing to set up at Safaricom.`;
   }
   if (d.kind === "paybill") {
-    return `When a customer pays, they get an M-Pesa prompt on their phone. After their PIN, the money lands in paybill ${d.paybill_number ?? "—"} (account ${d.account_number ?? "—"}). Nothing to set up at Safaricom.`;
+    return `When a customer pays, they get an M‑Pesa prompt on their phone. After their PIN, the money lands in paybill ${d.paybill_number ?? "—"} (account ${d.account_number ?? "—"}). Nothing to set up at Safaricom.`;
   }
-  return `When a customer pays, they get an M-Pesa prompt on their phone. After their PIN, the money lands in your bank account ${d.account_number ?? "—"} (Lipa Na M-Pesa paybill ${d.paybill_number ?? "—"}).`;
+  return `When a customer pays, they get an M‑Pesa prompt on their phone. After their PIN, the money lands in your bank account ${d.account_number ?? "—"} (Lipa Na M‑Pesa paybill ${d.paybill_number ?? "—"}).`;
 }
 
 export function confirmSentence(d: DraftDestination): string {
   if (d.kind === "till") {
-    return `When a customer pays, they get an M-Pesa push. After they enter their PIN, the money is sent to till ${d.till}. Nothing to set up at Safaricom.`;
+    return `When a customer pays, they get an M‑Pesa push. After they enter their PIN, the money is sent to till ${d.till}. Nothing to set up at Safaricom.`;
   }
   if (d.kind === "paybill") {
-    return `When a customer pays, they get an M-Pesa push. After they enter their PIN, the money is sent to paybill ${d.paybill} (account ${d.account}). Nothing to set up at Safaricom.`;
+    return `When a customer pays, they get an M‑Pesa push. After they enter their PIN, the money is sent to paybill ${d.paybill} (account ${d.account}). Nothing to set up at Safaricom.`;
   }
-  return `When a customer pays, they get an M-Pesa push. After they enter their PIN, the money is sent to ${d.bankName} account ${d.account} (Lipa Na M-Pesa paybill ${d.paybill}). Nothing to set up at Safaricom.`;
+  return `When a customer pays, they get an M‑Pesa push. After they enter their PIN, the money is sent to ${d.bankName} account ${d.account} (Lipa Na M‑Pesa paybill ${d.paybill}). Nothing to set up at Safaricom.`;
 }

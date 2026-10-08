@@ -72,7 +72,7 @@
   font-weight: 600;
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.42);
+  color: rgba(255, 255, 255, 0.56);
 }
 
 /* Nav is a labelled group so four bare links stop reading as a row of tabs. */
@@ -87,7 +87,7 @@
   font-weight: 700;
   letter-spacing: var(--ls-kicker);
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.34);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .navlink {
@@ -146,7 +146,11 @@
 }
 
 .navlink-out {
-  color: rgba(255, 255, 255, 0.42);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.navlink-out:hover {
+  color: #fff;
 }
 
 /* --- rail footer: service health ------------------------------------------ */
@@ -167,7 +171,7 @@
   font-weight: 600;
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .svc-dot {
@@ -298,7 +302,7 @@
   margin-bottom: var(--s2);
   font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: var(--ls-kicker);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--teal);
 }
@@ -446,7 +450,6 @@
   border: 0;
   background: transparent;
   color: var(--danger);
-  font-size: 1.1rem;
   line-height: 1;
   cursor: pointer;
   opacity: 0.6;
@@ -555,21 +558,32 @@
     padding: var(--s4);
   }
 
+  /* Brand and footer share the first row; each nav group gets its own full-width
+     row and scrolls sideways rather than pushing the rail wider than the screen. */
+  .brand {
+    order: -2;
+  }
+
+  .rail-foot {
+    order: -1;
+    margin: 0 0 0 auto;
+    padding: 0;
+    border: 0;
+  }
+
   .nav-group {
+    flex: 1 1 100%;
+    min-width: 0;
     grid-auto-flow: column;
     grid-auto-columns: max-content;
     gap: var(--s1);
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
   .nav-label,
   .navlink-on::before {
     display: none;
-  }
-
-  .rail-foot {
-    margin: 0 0 0 auto;
-    padding: 0;
-    border: 0;
   }
 
   .page-head {

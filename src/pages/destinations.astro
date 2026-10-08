@@ -181,7 +181,7 @@ function meta(d: SavedDestinationSummary): string {
                   )}
                 </div>
                 <div class="actions">
-                  <a class="btn btn-primary btn-sm" href={`/destinations/${active.id}`}>
+                  <a class="btn btn-ghost btn-sm" href={`/destinations/${active.id}`}>
                     View details
                   </a>
                   <a class="btn btn-ghost btn-sm" href="/keys">
@@ -240,7 +240,7 @@ function meta(d: SavedDestinationSummary): string {
                         <form method="post" action="/destinations">
                           <input type="hidden" name="_action" value="activate" />
                           <input type="hidden" name="id" value={d.id} />
-                          <button type="submit" class="btn btn-primary btn-sm">
+                          <button type="submit" class="btn btn-ghost btn-sm">
                             Set as default
                           </button>
                         </form>
@@ -294,7 +294,7 @@ function meta(d: SavedDestinationSummary): string {
                         <form method="post" action="/destinations">
                           <input type="hidden" name="_action" value="confirm" />
                           <input type="hidden" name="id" value={d.id} />
-                          <button type="submit" class="btn btn-teal btn-sm">
+                          <button type="submit" class="btn btn-accent btn-sm">
                             Confirm &amp; use
                           </button>
                         </form>

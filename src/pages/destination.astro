@@ -71,7 +71,7 @@ const bankCatalog = Object.fromEntries(
       <span class="page-kicker">Step 1 of 4</span>
       <h1>Where should payments be received?</h1>
       <p class="lede">
-        When a customer pays, they get an M-Pesa push on their phone. After they enter their PIN,
+        When a customer pays, they get an M‑Pesa push on their phone. After they enter their PIN,
         the money is sent to the till, paybill, or bank account you choose here.
       </p>
     </div>
@@ -144,7 +144,7 @@ const bankCatalog = Object.fromEntries(
                       maxlength="7"
                     />
                     <span class="field-hint">
-                      The number on your M-Pesa till. Nothing to set up at Safaricom.
+                      The number on your M‑Pesa till. Nothing to set up at Safaricom.
                     </span>
                   </div>
                 </div>
@@ -231,7 +231,7 @@ const bankCatalog = Object.fromEntries(
 
                   <div class="settle-card" id="settle-card" hidden>
                     <div class="settle-card-top">
-                      <span class="settle-label">Lipa Na M-Pesa details</span>
+                      <span class="settle-label">Lipa Na M‑Pesa details</span>
                       <span class="badge">auto-filled</span>
                     </div>
                     <div class="kv">
@@ -245,7 +245,7 @@ const bankCatalog = Object.fromEntries(
                       </div>
                     </div>
                     <p class="field-hint mt-3">
-                      You don’t type the paybill — only the account number your bank issued for M-Pesa
+                      You don’t type the paybill — only the account number your bank issued for M‑Pesa
                       deposits.
                     </p>
                   </div>
@@ -263,7 +263,7 @@ const bankCatalog = Object.fromEntries(
                         />
                       </div>
                       <div class="field field-sm">
-                        <label for="custom_paybill">Bank’s M-Pesa paybill</label>
+                        <label for="custom_paybill">Bank’s M‑Pesa paybill</label>
                         <input
                           id="custom_paybill"
                           name="custom_paybill"
@@ -273,7 +273,7 @@ const bankCatalog = Object.fromEntries(
                           maxlength="7"
                         />
                         <span class="field-hint">
-                          From your bank’s Lipa Na M-Pesa deposit instructions.
+                          From your bank’s Lipa Na M‑Pesa deposit instructions.
                         </span>
                       </div>
                     </div>
@@ -286,7 +286,7 @@ const bankCatalog = Object.fromEntries(
                       name="bank_account"
                       inputmode="numeric"
                       autocomplete="off"
-                      placeholder="Account number for M-Pesa deposits"
+                      placeholder="Account number for M‑Pesa deposits"
                       maxlength="32"
                     />
                     <span class="field-hint" id="bank-account-hint"></span>
@@ -314,7 +314,7 @@ const bankCatalog = Object.fromEntries(
         <summary>Not sure which to pick?</summary>
         <div class="explainer-body">
           <p>
-            <strong>Buy Goods till</strong> — the number on your M-Pesa till. Money lands instantly
+            <strong>Buy Goods till</strong> — the number on your M‑Pesa till. Money lands instantly
             and there is nothing to set up at Safaricom.
           </p>
           <p>
@@ -323,7 +323,7 @@ const bankCatalog = Object.fromEntries(
           </p>
           <p>
             <strong>Bank account</strong> — settle straight to your bank. You only type the account
-            number your bank issued for M-Pesa deposits; the paybill is filled in for you.
+            number your bank issued for M‑Pesa deposits; the paybill is filled in for you.
           </p>
           <p>You can save more than one and switch the default whenever you like.</p>
         </div>
@@ -401,9 +401,9 @@ const bankCatalog = Object.fromEntries(
 
     if (accountHint) {
       accountHint.textContent = bank
-        ? `Account number ${bank.name.replace(/ \(.*\)/, "")} gave you for Lipa Na M-Pesa deposits.`
+        ? `Account number ${bank.name.replace(/ \(.*\)/, "")} gave you for Lipa Na M‑Pesa deposits.`
         : custom
-          ? "Account number Lipa Na M-Pesa will use."
+          ? "Account number Lipa Na M‑Pesa will use."
           : "";
     }
 

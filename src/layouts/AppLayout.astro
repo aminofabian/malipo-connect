@@ -90,7 +90,10 @@ const initial = (email ?? "?").trim().charAt(0).toUpperCase() || "?";
                 <span id="svc-dot" class="svc-dot" data-state="unknown" aria-hidden="true" />
                 Payments service
               </span>
-              <a class="navlink navlink-out" href="/api/session/logout">Sign out</a>
+              <a class="navlink navlink-out" href="/api/session/logout">
+                <Icon name="logout" />
+                Sign out
+              </a>
             </div>
           </aside>
 
@@ -130,7 +133,7 @@ const initial = (email ?? "?").trim().charAt(0).toUpperCase() || "?";
                   </span>
                 </div>
                 <button type="button" class="svc-dismiss" data-dismiss aria-label="Dismiss">
-                  <span aria-hidden="true">×</span>
+                  <Icon name="close" size="sm" />
                 </button>
               </div>
 

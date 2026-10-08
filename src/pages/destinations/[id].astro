@@ -100,7 +100,7 @@ function addedDate(iso?: string | null): string {
       {
         !dest.verified && (
           <form method="post" action={`/destinations/${id}`}>
-            <button type="submit" name="_action" value="confirm" class="btn btn-teal">
+            <button type="submit" name="_action" value="confirm" class="btn btn-accent">
               Confirm &amp; use
             </button>
           </form>
@@ -147,10 +147,6 @@ function addedDate(iso?: string | null): string {
           <div>
             <dt>Added</dt>
             <dd>{addedDate(dest.inserted_at)}</dd>
-          </div>
-          <div>
-            <dt>Status</dt>
-            <dd>{status.label}</dd>
           </div>
         </dl>
       </div>

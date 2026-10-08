@@ -59,6 +59,9 @@
 .flush { padding: 0; }
 .gap-2 { gap: var(--s2); }
 
+/* A field that takes the free width of a row, down to a minimum. */
+.field-grow { flex: 1 1 6rem; }
+
 /* A display figure: a large, tightly-set number or verified name. */
 .t-2xl {
   font-size: var(--fs-2xl);

@@ -149,7 +149,7 @@ export default function TestPayment({
         {status === "prompting" && (
           <p className="callout callout-warn" role="status">
             <span className="callout-title">Waiting for you.</span>
-            <span>Check your phone for the M-Pesa prompt and enter your PIN.</span>
+            <span>Check your phone for the M‑Pesa prompt and enter your PIN.</span>
           </p>
         )}
 

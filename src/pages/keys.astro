@@ -105,7 +105,7 @@ function when(iso: string | null | undefined) {
       <h1>Charge a phone</h1>
       <p class="lede">
         Money goes to <strong>{dest}</strong>. Copy this request — the customer's phone gets an
-        M-Pesa prompt.
+        M‑Pesa prompt.
       </p>
     </div>
     <div class="page-actions">
@@ -267,6 +267,8 @@ function when(iso: string | null | undefined) {
     </div>
 
     <aside class="aside">
+      {rotateError && <p class="callout callout-error" role="alert">{rotateError}</p>}
+
       <section class="card">
         <div class="card-head">
           <h2>Integration details</h2>
@@ -293,6 +295,11 @@ function when(iso: string | null | undefined) {
             </div>
           </div>
         </div>
+        <form method="post" action="/keys" class="card-foot">
+          <input type="hidden" name="action" value="rotate" />
+          <p class="note">Issues a new client secret. The old one stops working immediately.</p>
+          <button type="submit" class="btn btn-danger-ghost btn-sm">Rotate key</button>
+        </form>
       </section>
 
       <section class="card">
@@ -324,7 +331,7 @@ function when(iso: string | null | undefined) {
             Pay from your phone to prove the whole thing works. Some banks reject KES 1.
           </p>
           <form method="get" action="/test" class="row gap-2">
-            <div class="field" style="flex: 1 1 6rem">
+            <div class="field field-grow">
               <label for="test-amount" class="sr-only">Amount (KES)</label>
               <input
                 id="test-amount"
@@ -367,14 +374,6 @@ function when(iso: string | null | undefined) {
     </aside>
   </div>
 
-  <div class="actions mt-7">
-    <a class="btn btn-ghost" href="/destinations">Destinations</a>
-    <form method="post" action="/keys">
-      <input type="hidden" name="action" value="rotate" />
-      {rotateError && <p class="callout callout-error" role="alert">{rotateError}</p>}
-      <button type="submit" class="btn btn-ghost">Rotate key</button>
-    </form>
-  </div>
 </AppLayout>
 
 <script>

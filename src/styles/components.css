@@ -261,22 +261,20 @@
   outline-color: var(--ink);
 }
 
-.btn-teal {
-  background: var(--teal);
-  border-color: var(--teal);
-  color: #fff;
+/* Destructive but not the page's focus: outlined, and only red on intent. */
+.btn-danger-ghost {
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+  color: var(--danger);
 }
 
-.btn-teal:hover {
-  background: var(--teal-deep);
-  border-color: var(--teal-deep);
-  color: #fff;
-  box-shadow: 0 10px 22px -12px color-mix(in srgb, var(--teal-deep) 80%, transparent);
+.btn-danger-ghost:hover {
+  background: var(--danger-08);
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 /* A pressed solid control should feel pressed, not just nudged. */
 .btn-primary:active,
-.btn-teal:active,
 .btn-accent:active {
   box-shadow: inset 0 2px 5px rgba(10, 10, 10, 0.18);
 }
@@ -910,6 +908,12 @@
   color: var(--ink-faint);
 }
 
+/* Action needed: the state is "not yet", so it reads as warm, not as failed. */
+.pill-attn {
+  background: color-mix(in srgb, var(--warn) 16%, #fff);
+  color: var(--warn-deep);
+}
+
 .pill-settled {
   background: var(--teal-12);
   color: var(--teal);
@@ -1063,11 +1067,17 @@
   min-width: 0;
   font-family: var(--mono);
   font-size: var(--fs-sm);
-  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .copy-row-value :not(code) {
   font-family: var(--font);
+}
+
+.copy-row-value code {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .copy-row .btn {
@@ -1209,15 +1219,15 @@
   color: var(--ink-faint);
 }
 
-.checklist-done {
-  background: var(--teal-08);
-  border-color: var(--teal-30);
-}
-
+/* Done is marked by the check, not by tinting the whole row. */
 .checklist-done .checklist-mark {
   border-color: var(--teal);
   background: var(--teal);
   color: #fff;
+}
+
+.checklist-done .checklist-label {
+  color: var(--ink-muted);
 }
 
 .checklist-label {
@@ -1261,16 +1271,6 @@
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   background: var(--surface-2);
-  transition:
-    transform var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) ease,
-    box-shadow var(--dur-fast) ease;
-}
-
-.flow li:hover {
-  transform: translateY(-3px);
-  border-color: var(--line-strong);
-  box-shadow: var(--shadow-sm);
 }
 
 .flow b {
@@ -1299,14 +1299,30 @@
   color: var(--ink-muted);
 }
 
+/* Each callout carries a glyph from the icon set, placed in the left gutter so
+   the text column stays aligned whatever the state. */
 .callout {
+  position: relative;
+  --callout-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='7'/%3E%3Cpath d='M10 9.25v4.5M10 6.4v.2'/%3E%3C/svg%3E");
   display: grid;
   gap: var(--s2);
-  padding: var(--s4) var(--s5);
+  padding: var(--s4) var(--s5) var(--s4) calc(var(--s5) + var(--icon-md) + var(--s3));
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   font-size: var(--fs-md);
   line-height: var(--lh);
+}
+
+.callout::before {
+  content: "";
+  position: absolute;
+  left: var(--s5);
+  top: calc(var(--s4) + 0.15rem);
+  width: var(--icon-md);
+  height: var(--icon-md);
+  background-color: currentColor;
+  mask: var(--callout-glyph) center / contain no-repeat;
+  -webkit-mask: var(--callout-glyph) center / contain no-repeat;
 }
 
 .callout-title {
@@ -1314,18 +1330,21 @@
 }
 
 .callout-ok {
+  --callout-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 10.5 8 14l7.5-8'/%3E%3C/svg%3E");
   border-color: var(--teal-30);
   background: var(--teal-08);
   color: var(--teal-deep);
 }
 
 .callout-warn {
+  --callout-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 3.25 17.5 16.5h-15Z'/%3E%3Cpath d='M10 8.5v3.5M10 14.4v.2'/%3E%3C/svg%3E");
   border-color: var(--yellow-70);
   background: var(--yellow-30);
-  color: var(--ink);
+  color: var(--warn-deep);
 }
 
 .callout-error {
+  --callout-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 3.25 17.5 16.5h-15Z'/%3E%3Cpath d='M10 8.5v3.5M10 14.4v.2'/%3E%3C/svg%3E");
   border-color: color-mix(in srgb, var(--danger) 30%, transparent);
   background: var(--danger-08);
   color: var(--danger);
@@ -1384,17 +1403,18 @@
 
 .explainer summary::after {
   content: "";
+  flex: 0 0 auto;
   margin-left: auto;
-  width: 0.45rem;
-  height: 0.45rem;
-  border-right: 1.5px solid var(--ink-faint);
-  border-bottom: 1.5px solid var(--ink-faint);
-  transform: rotate(45deg) translate(-0.1rem, -0.1rem);
+  width: var(--icon-md);
+  height: var(--icon-md);
+  background-color: var(--ink-faint);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 7.5 10 12.5l5-5'/%3E%3C/svg%3E") center / contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 7.5 10 12.5l5-5'/%3E%3C/svg%3E") center / contain no-repeat;
   transition: transform var(--dur) var(--ease-out);
 }
 
 .explainer[open] summary::after {
-  transform: rotate(-135deg) translate(-0.15rem, -0.15rem);
+  transform: rotate(180deg);
 }
 
 .explainer-body {
