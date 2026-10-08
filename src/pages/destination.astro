@@ -91,7 +91,7 @@ const bankCatalog = Object.fromEntries(
               You already have {saved.length} saved destination{saved.length === 1 ? "" : "s"}
               {activeSaved && <> — {savedDestinationLabel(activeSaved)} is receiving payments</>}.
             </span>
-            <a href="/destinations" style="font-weight: 500">
+            <a href="/destinations">
               View them before adding another
             </a>
           </div>
@@ -244,7 +244,7 @@ const bankCatalog = Object.fromEntries(
                         <span class="kv-val mono" id="settle-paybill">—</span>
                       </div>
                     </div>
-                    <p class="field-hint" style="margin-top: var(--s3)">
+                    <p class="field-hint mt-3">
                       You don’t type the paybill — only the account number your bank issued for M-Pesa
                       deposits.
                     </p>

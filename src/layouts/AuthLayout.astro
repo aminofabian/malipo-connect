@@ -3,6 +3,7 @@ import "@fontsource-variable/sora";
 import "../styles/tokens.css";
 import "../styles/shell.css";
 import "../styles/components.css";
+import "../styles/utilities.css";
 
 interface Props {
   title: string;
@@ -36,13 +37,13 @@ const { title, heading, lede, points } = Astro.props;
           <p>{lede}</p>
         </div>
 
-        <ul class="flow" style="color: #fff">
+        <ul class="flow">
           {
             points.map((point, i) => (
-              <li style="background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.12)">
-                <b style="color: var(--yellow)">0{i + 1}</b>
-                <span style="color: #fff">
-                  <strong style="display: block; margin-bottom: 2px">{point.title}</strong>
+              <li>
+                <b>0{i + 1}</b>
+                <span>
+                  <strong>{point.title}</strong>
                   {point.body}
                 </span>
               </li>

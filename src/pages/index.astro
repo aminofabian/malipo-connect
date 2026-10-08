@@ -1,5 +1,6 @@
 ---
 import AppLayout from "../layouts/AppLayout.astro";
+import Icon from "../components/Icon.astro";
 import { savedDestinationLabel, savedDestinationStatus } from "../lib/destination";
 import type { SavedDestinationSummary } from "../lib/destination";
 import { listDestinations, malipoConfigured } from "../lib/malipo";
@@ -91,14 +92,12 @@ const doneCount = steps.filter((s) => s.done).length;
       ready ? (
         <p class="callout callout-ok" role="status">
           <span class="callout-title">Ready — payments land in {savedDestinationLabel(active!)}.</span>
-          <span style="font-weight: 400">
-            {active && savedDestinationStatus(active).label}. Keep going by sending a test payment.
-          </span>
+          <span>{active && savedDestinationStatus(active).label}. Keep going by sending a test payment.</span>
         </p>
       ) : (
         <p class="callout callout-warn" role="status">
           <span class="callout-title">Not taking payments yet.</span>
-          <span style="font-weight: 400">Finish the steps below to go live.</span>
+          <span>Finish the steps below to go live.</span>
         </p>
       )
     }
@@ -141,19 +140,21 @@ const doneCount = steps.filter((s) => s.done).length;
             <p class="sr-only">
               {doneCount} of {steps.length} setup steps complete.
             </p>
-          </div>
 
-          <ul class="checklist" style="padding: 0 var(--s5) var(--s5)">
-            {steps.map((step) => (
-              <li class:list={["checklist-item", { "checklist-done": step.done }]}>
-                <span class="checklist-mark" aria-hidden="true">{step.done ? "✓" : "○"}</span>
-                <a class="checklist-label" href={step.href}>
-                  {step.label}
-                </a>
-                {step.optional && !step.done && <span class="checklist-tag">optional</span>}
-              </li>
-            ))}
-          </ul>
+            <ul class="checklist mt-4">
+              {steps.map((step) => (
+                <li class:list={["checklist-item", { "checklist-done": step.done }]}>
+                  <span class="checklist-mark" aria-hidden="true">
+                    <Icon name={step.done ? "check" : "circle"} size="sm" />
+                  </span>
+                  <a class="checklist-label" href={step.href}>
+                    {step.label}
+                  </a>
+                  {step.optional && !step.done && <span class="checklist-tag">optional</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
 
         <section aria-labelledby="how-heading">
@@ -193,7 +194,7 @@ const doneCount = steps.filter((s) => s.done).length;
               active ? (
                 <>
                   <span class="dest-hero-kicker">Receiving payments</span>
-                  <p class="dest-hero-label" style="font-size: var(--fs-lg); margin: var(--s2) 0">
+                  <p class="dest-row-label mt-2 mb-2">
                     {savedDestinationLabel(active)}
                   </p>
                   <p class="dest-row-meta">
@@ -201,7 +202,7 @@ const doneCount = steps.filter((s) => s.done).length;
                   </p>
                 </>
               ) : (
-                <div class="empty" style="padding: var(--s5) var(--s4); border: 0; background: none">
+                <div class="empty empty--bare">
                   <p>
                     No destination is receiving payments yet. Add a till, paybill, or bank account to
                     get started.

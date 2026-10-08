@@ -59,10 +59,8 @@ if (Astro.request.method === "POST") {
     { title: "Get paid", body: "Customers approve an M-Pesa prompt on their own phone." },
   ]}
 >
-  <h1 style="font-size: var(--fs-2xl)">Sign in</h1>
-  <p class="lede" style="color: var(--ink-muted); margin-top: var(--s2); margin-bottom: var(--s6)">
-    Use your Malipo Connect account — email and password.
-  </p>
+  <h1>Sign in</h1>
+  <p class="lede">Use your Malipo Connect account — email and password.</p>
 
   {
     error && (
@@ -101,7 +99,7 @@ if (Astro.request.method === "POST") {
     </div>
   </form>
 
-  <p class="note" style="margin-top: var(--s6)">
+  <p class="note">
     New here? <a href={`/signup?next=${encodeURIComponent(next)}`}>Create an account</a>
   </p>
 </AuthLayout>

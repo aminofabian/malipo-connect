@@ -123,7 +123,7 @@ function when(iso: string | null | undefined) {
               <span class="callout-title">
                 {rotated ? "New key issued. " : ""}Copy this now.
               </span>
-              <span style="font-weight: 400">Refreshing the page hides the key forever.</span>
+              <span>Refreshing the page hides the key forever.</span>
             </p>
 
             <section class="card">
@@ -133,7 +133,7 @@ function when(iso: string | null | undefined) {
                   Copy request
                 </button>
               </div>
-              <div class="card-body" style="padding: 0">
+              <div class="card-body card-body-flush">
                 <pre class="snippet">{chargeRequest}</pre>
               </div>
               <div class="card-foot">
@@ -153,7 +153,7 @@ function when(iso: string | null | undefined) {
                 </button>
               </div>
               <div class="card-body">
-                <p class="note" style="margin-bottom: var(--s3)">
+                <p class="note mb-3">
                   We sign every callback with this secret (<code>X-Malipo-Signature</code>). Keep it
                   on your server. Verify it, or just confirm with <code>GET</code>.{" "}
                   <a href="/guide#verify">How to verify</a>.
@@ -211,7 +211,7 @@ function when(iso: string | null | undefined) {
 
         {
           scopeTotal && (
-            <div class="card-body card-body-tight" style="border-bottom: 1px solid var(--line-soft)">
+            <div class="card-body card-body-tight divide-b">
               <span class="figure">
                 <span class="figure-value">{kes(scopeTotal.total)}</span>
                 <span class="figure-label">
@@ -271,8 +271,8 @@ function when(iso: string | null | undefined) {
         <div class="card-head">
           <h2>Integration details</h2>
         </div>
-        <div style="padding: 0">
-          <div class="copy-list" style="border: 0">
+        <div class="card-body card-body-flush">
+          <div class="copy-list copy-list--bare">
             <div class="copy-row">
               <span class="copy-row-label">Client ID</span>
               <span class="copy-row-value">
@@ -320,10 +320,10 @@ function when(iso: string | null | undefined) {
           <h2>Send a test payment</h2>
         </div>
         <div class="card-body">
-          <p class="note" style="margin-bottom: var(--s3)">
+          <p class="note mb-3">
             Pay from your phone to prove the whole thing works. Some banks reject KES 1.
           </p>
-          <form method="get" action="/test" class="row" style="gap: var(--s2)">
+          <form method="get" action="/test" class="row gap-2">
             <div class="field" style="flex: 1 1 6rem">
               <label for="test-amount" class="sr-only">Amount (KES)</label>
               <input
@@ -367,7 +367,7 @@ function when(iso: string | null | undefined) {
     </aside>
   </div>
 
-  <div class="actions" style="margin-top: var(--s7)">
+  <div class="actions mt-7">
     <a class="btn btn-ghost" href="/destinations">Destinations</a>
     <form method="post" action="/keys">
       <input type="hidden" name="action" value="rotate" />
@@ -384,8 +384,12 @@ function when(iso: string | null | undefined) {
       const text = btn.getAttribute("data-copy-btn") ?? "";
       try {
         await navigator.clipboard.writeText(text);
+        btn.classList.add("is-copied");
         btn.textContent = "Copied";
-        setTimeout(() => (btn.textContent = label), 1200);
+        setTimeout(() => {
+          btn.classList.remove("is-copied");
+          btn.textContent = label;
+        }, 1200);
       } catch {
         const span = btn.previousElementSibling;
         if (span) {

@@ -69,12 +69,8 @@ const sentence = confirmSentence(draft);
         <span class="pill pill-ok">Ready to confirm</span>
       </div>
       <div class="card-body">
-        <p
-          style="font-size: var(--fs-2xl); font-weight: 600; letter-spacing: -0.03em; margin-bottom: var(--s4)"
-        >
-          {name}
-        </p>
-        <p style="color: var(--ink-muted); line-height: 1.65">{sentence}</p>
+        <p class="t-2xl mb-4">{name}</p>
+        <p class="lede">{sentence}</p>
       </div>
       <div class="card-foot">
         <form method="post" action="/confirm" class="actions">
@@ -86,8 +82,8 @@ const sentence = confirmSentence(draft);
 
     <aside class="aside">
       <div class="soft-yellow">
-        <p class="section-kicker" style="color: var(--ink)">Before you confirm</p>
-        <p class="note" style="color: var(--ink)">
+        <p class="section-kicker section-kicker--ink">Before you confirm</p>
+        <p class="note ink">
           Read the number back against what your customer will type on their phone. Confirming also
           issues your API keys, which are shown once.
         </p>

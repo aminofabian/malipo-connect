@@ -451,14 +451,14 @@ if (got.length !== expected.length || !timingSafeEqual(got, expected)) {
     margin-bottom: var(--s3);
     font-size: var(--fs-xs);
     font-weight: 700;
-    letter-spacing: 0.14em;
+    letter-spacing: var(--ls-label);
     text-transform: uppercase;
     color: var(--ink-faint);
   }
 
   .doc-toc ul {
     display: grid;
-    gap: 0.1rem;
+    gap: var(--s0);
     margin: 0;
     list-style: none;
   }
@@ -470,12 +470,21 @@ if (got.length !== expected.length || !timingSafeEqual(got, expected)) {
     color: var(--ink-muted);
     font-size: var(--fs-sm);
     text-decoration: none;
-    transition: border-color var(--dur-fast) ease, color var(--dur-fast) ease;
+    transition:
+      border-color var(--dur-fast) ease,
+      color var(--dur-fast) ease,
+      background var(--dur-fast) ease;
   }
 
   .doc-toc a:hover {
     border-left-color: var(--yellow-deep);
+    background: var(--surface-2);
     color: var(--ink);
+  }
+
+  .doc-toc a:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
   }
 
   .doc-body {
@@ -506,7 +515,7 @@ if (got.length !== expected.length || !timingSafeEqual(got, expected)) {
     margin-bottom: var(--s3);
     color: var(--ink-muted);
     font-size: var(--fs-base);
-    line-height: 1.7;
+    line-height: var(--lh-loose);
   }
 
   .doc-body .snippet {
@@ -536,7 +545,7 @@ if (got.length !== expected.length || !timingSafeEqual(got, expected)) {
     text-align: left;
     vertical-align: top;
     border-bottom: 1px solid var(--line-soft);
-    line-height: 1.5;
+    line-height: var(--lh);
   }
 
   .doc-body :is(th, td):first-child {
@@ -546,7 +555,7 @@ if (got.length !== expected.length || !timingSafeEqual(got, expected)) {
   .doc-body th {
     font-size: var(--fs-xs);
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--ls-caps);
     text-transform: uppercase;
     color: var(--ink-faint);
   }

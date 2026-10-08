@@ -3,7 +3,7 @@
    ----------------------------------------------------------------------------
    Grouped so a page reads top-to-bottom in one direction: layout grids →
    surfaces → controls → data display → feedback → code. Every rule here is
-   used by at least one page.
+   used by at least one page, and every value resolves to a token.
    ========================================================================= */
 
 /* --- layout grids --------------------------------------------------------- */
@@ -57,25 +57,30 @@
 
 .section-title {
   font-size: var(--fs-lg);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
 }
 
 .section-kicker {
   display: block;
-  margin-bottom: 0.2rem;
+  margin-bottom: var(--s0);
   font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--teal);
 }
 
+/* A kicker sitting on a tinted or dark panel must not fight the panel. */
+.section-kicker--ink {
+  color: var(--ink);
+}
+
 .section-hint {
   max-width: 62ch;
-  margin-top: 0.3rem;
+  margin-top: var(--s1);
   color: var(--ink-muted);
   font-size: var(--fs-sm);
-  line-height: 1.6;
+  line-height: var(--lh-loose);
 }
 
 /* --- surfaces ------------------------------------------------------------- */
@@ -97,6 +102,11 @@
   padding: var(--s5);
 }
 
+/* Lets a table or code block bleed to the card's edges. */
+.card-body-flush {
+  padding: 0;
+}
+
 .card-body-tight {
   padding: var(--s4);
 }
@@ -115,7 +125,7 @@
 .card-head h3 {
   font-size: var(--fs-md);
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.005em;
 }
 
 .card-foot {
@@ -137,16 +147,16 @@
 }
 
 .soft-yellow {
-  border: 1px solid color-mix(in srgb, var(--yellow) 70%, var(--line));
+  border: 1px solid var(--yellow-70);
   border-radius: var(--r-lg);
-  background: color-mix(in srgb, var(--yellow) 26%, #fff);
+  background: var(--yellow-30);
   padding: var(--s4);
 }
 
 .soft-teal {
-  border: 1px solid color-mix(in srgb, var(--teal) 34%, var(--line));
+  border: 1px solid var(--teal-30);
   border-radius: var(--r-lg);
-  background: color-mix(in srgb, var(--teal) 7%, #fff);
+  background: var(--teal-08);
   padding: var(--s4);
 }
 
@@ -163,23 +173,25 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
-  min-height: 2.5rem;
-  padding: 0 1.1rem;
+  gap: var(--s2);
+  min-height: var(--control-h);
+  padding: 0 var(--control-pad);
   border: 1px solid transparent;
   border-radius: var(--r-xs);
   background: transparent;
   font-size: var(--fs-md);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--ls-tight);
+  line-height: 1;
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
   transition:
-    transform var(--dur-fast) var(--ease-out),
     background var(--dur-fast) ease,
     border-color var(--dur-fast) ease,
-    box-shadow var(--dur-fast) ease;
+    color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
 }
 
 .btn:hover {
@@ -187,18 +199,26 @@
 }
 
 .btn:active {
-  transform: translateY(1px);
+  transform: translateY(0);
 }
 
-.btn:disabled {
-  opacity: 0.5;
+.btn:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.45;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
 .btn svg {
-  width: 0.95rem;
-  height: 0.95rem;
+  flex: 0 0 auto;
+  width: var(--icon-md);
+  height: var(--icon-md);
 }
 
 .btn-primary {
@@ -209,7 +229,9 @@
 
 .btn-primary:hover {
   background: #1c1c1c;
+  border-color: #1c1c1c;
   color: #fff;
+  box-shadow: 0 10px 22px -12px rgba(10, 10, 10, 0.6);
 }
 
 .btn-ghost {
@@ -219,20 +241,24 @@
 
 .btn-ghost:hover {
   background: rgba(10, 10, 10, 0.05);
+  border-color: var(--ink);
   color: var(--ink);
 }
 
 .btn-accent {
   background: var(--yellow);
-  border-color: var(--yellow);
+  border-color: var(--ink);
   color: var(--ink);
 }
 
 .btn-accent:hover {
   background: var(--yellow-deep);
-  border-color: var(--yellow-deep);
   color: var(--ink);
-  box-shadow: 0 10px 24px -12px rgba(10, 10, 10, 0.45);
+  box-shadow: 0 10px 22px -12px rgba(10, 10, 10, 0.5);
+}
+
+.btn-accent:focus-visible {
+  outline-color: var(--ink);
 }
 
 .btn-teal {
@@ -245,17 +271,66 @@
   background: var(--teal-deep);
   border-color: var(--teal-deep);
   color: #fff;
-  box-shadow: 0 10px 24px -12px rgba(10, 10, 10, 0.45);
+  box-shadow: 0 10px 22px -12px color-mix(in srgb, var(--teal-deep) 80%, transparent);
+}
+
+/* A pressed solid control should feel pressed, not just nudged. */
+.btn-primary:active,
+.btn-teal:active,
+.btn-accent:active {
+  box-shadow: inset 0 2px 5px rgba(10, 10, 10, 0.18);
 }
 
 .btn-sm {
-  min-height: 2rem;
-  padding: 0 0.7rem;
+  min-height: var(--control-h-sm);
+  padding: 0 var(--s3);
   font-size: var(--fs-sm);
 }
 
 .btn-block {
   width: 100%;
+}
+
+/* Square icon-only control, matched to the height of the buttons beside it. */
+.btn-icon {
+  width: var(--control-h);
+  padding: 0;
+}
+
+.btn-icon.btn-sm {
+  width: var(--control-h-sm);
+}
+
+/* Copy confirmation — the button itself reports success, quietly. */
+.btn.is-copied {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Opt-in busy state: a spinner replaces the leading gap while work runs. */
+.btn[aria-busy="true"] {
+  pointer-events: none;
+}
+
+.btn[aria-busy="true"]::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 0.85em;
+  height: 0.85em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--r-full);
+  opacity: 0.9;
+  animation: btn-spin 0.6s linear infinite;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .actions {
@@ -283,19 +358,45 @@
 .field select,
 .field textarea {
   width: 100%;
-  padding: 0.65rem 0.8rem;
+  min-height: var(--control-h);
+  padding: var(--s2) var(--s3);
   border: 1px solid var(--line-strong);
   border-radius: var(--r-sm);
   background: #fff;
   font-size: var(--fs-base);
+  line-height: var(--lh);
   transition:
     border-color var(--dur-fast) ease,
-    box-shadow var(--dur-fast) ease;
+    box-shadow var(--dur-fast) ease,
+    background var(--dur-fast) ease;
 }
 
-.field input::placeholder {
-  color: var(--ink-faint);
+.field textarea {
+  min-height: 6rem;
+  padding-block: var(--s3);
+  resize: vertical;
+}
+
+/* A native select gets a consistent chevron instead of the OS one. */
+.field select {
+  appearance: none;
+  padding-right: var(--s6);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%236e747b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--s3) center;
+  background-size: 0.7rem;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: var(--ink-hair);
   opacity: 1;
+}
+
+.field input:hover,
+.field select:hover,
+.field textarea:hover {
+  border-color: var(--ink-faint);
 }
 
 .field input:focus,
@@ -303,13 +404,37 @@
 .field textarea:focus {
   outline: none;
   border-color: var(--teal);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 18%, transparent);
+  box-shadow: var(--ring);
+}
+
+.field input:disabled,
+.field select:disabled,
+.field textarea:disabled {
+  background: var(--surface-3);
+  color: var(--ink-faint);
+  cursor: not-allowed;
+}
+
+/* Errors point at the field, not just the page. */
+.field-error input,
+.field input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.field-error input:focus,
+.field input[aria-invalid="true"]:focus {
+  border-color: var(--danger);
+  box-shadow: var(--ring-danger);
 }
 
 .field-hint {
   font-size: var(--fs-xs);
-  line-height: 1.5;
+  line-height: var(--lh);
   color: var(--ink-faint);
+}
+
+.field-error .field-hint {
+  color: var(--danger);
 }
 
 .optional {
@@ -350,7 +475,7 @@
 .choice label {
   display: flex;
   align-items: flex-start;
-  gap: 0.7rem;
+  gap: var(--s3);
   padding: var(--s4);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
@@ -368,9 +493,14 @@
   transform: translateY(-2px);
 }
 
+.choice label:has(input:focus-visible) {
+  border-color: var(--teal);
+  box-shadow: var(--ring);
+}
+
 .choice label:has(input:checked) {
   border-color: var(--yellow-deep);
-  background: color-mix(in srgb, var(--yellow) 20%, #fff);
+  background: var(--yellow-15);
   box-shadow: var(--shadow-card);
 }
 
@@ -391,12 +521,12 @@
   display: block;
   font-size: var(--fs-base);
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: var(--ls-tight);
 }
 
 .choice em {
   display: block;
-  margin-top: 0.15rem;
+  margin-top: var(--s0);
   font-style: normal;
   font-size: var(--fs-sm);
   color: var(--ink-faint);
@@ -433,7 +563,7 @@
   margin-bottom: var(--s1);
   font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--teal);
 }
@@ -447,7 +577,7 @@
 
 .bank-chip {
   display: grid;
-  gap: 0.1rem;
+  gap: var(--s0);
   padding: 0.55rem 0.75rem;
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
@@ -457,6 +587,7 @@
   transition:
     border-color var(--dur-fast) ease,
     background var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease,
     transform var(--dur-fast) var(--ease-out);
 }
 
@@ -465,10 +596,15 @@
   border-color: var(--line-strong);
 }
 
+.bank-chip:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
 .bank-chip.is-on,
 .bank-chip[aria-pressed="true"] {
   border-color: var(--yellow-deep);
-  background: color-mix(in srgb, var(--yellow) 28%, #fff);
+  background: var(--yellow-30);
 }
 
 .bank-chip-name {
@@ -478,7 +614,7 @@
 
 .bank-chip-pb {
   font-family: var(--mono);
-  font-size: 0.68rem;
+  font-size: var(--fs-2xs);
   font-variant-numeric: tabular-nums;
   color: var(--ink-faint);
 }
@@ -486,9 +622,9 @@
 /* Read-only confirmation of what Lipa Na M-Pesa will use. */
 .settle-card {
   padding: var(--s4);
-  border: 1px solid color-mix(in srgb, var(--teal) 30%, var(--line));
+  border: 1px solid var(--teal-30);
   border-radius: var(--r-lg);
-  background: color-mix(in srgb, var(--teal) 6%, #fff);
+  background: var(--teal-05);
 }
 
 .settle-card-top {
@@ -504,24 +640,24 @@
 .settle-label {
   font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--teal);
 }
 
 .badge {
   padding: 0.15rem 0.5rem;
-  background: color-mix(in srgb, var(--teal) 12%, transparent);
-  font-size: 0.62rem;
+  background: var(--teal-12);
+  font-size: var(--fs-2xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--ls-caps);
   text-transform: uppercase;
-  color: var(--teal);
+  color: var(--teal-deep);
 }
 
 .kv {
   display: grid;
-  gap: 0.35rem;
+  gap: var(--s-half);
 }
 
 .kv-row {
@@ -551,7 +687,7 @@
 
 .kv-val.mono {
   font-family: var(--mono);
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
 }
@@ -561,15 +697,15 @@
   padding: var(--s4);
   border: 1px dashed color-mix(in srgb, var(--teal) 45%, transparent);
   border-radius: var(--r-md);
-  background: color-mix(in srgb, var(--teal) 5%, #fff);
+  background: var(--teal-05);
 }
 
 .preview-kicker {
   display: block;
-  margin-bottom: 0.2rem;
+  margin-bottom: var(--s0);
   font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--teal);
 }
@@ -591,15 +727,15 @@
 }
 
 .fact-list dt {
-  font-size: 0.68rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--ls-caps);
   text-transform: uppercase;
   color: var(--ink-faint);
 }
 
 .fact-list dd {
-  margin: 0.15rem 0 0;
+  margin: var(--s0) 0 0;
   font-size: var(--fs-md);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
@@ -616,7 +752,7 @@
 .figure-value {
   font-size: var(--fs-2xl);
   font-weight: 600;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.035em;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
@@ -645,11 +781,14 @@
   border-radius: var(--r-lg);
   background: var(--surface);
   box-shadow: var(--shadow-card);
-  transition: border-color var(--dur-fast) ease;
+  transition:
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
 }
 
 .dest-row:hover {
   border-color: var(--line-strong);
+  box-shadow: var(--shadow-raise);
 }
 
 .dest-row-main {
@@ -668,13 +807,19 @@
 .dest-row-label {
   font-size: var(--fs-lg);
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: var(--ls-tight);
   word-break: break-word;
 }
 
 .dest-row-meta {
   color: var(--ink-muted);
   font-size: var(--fs-sm);
+}
+
+/* Money received against this destination reads as a positive note. */
+.dest-row-meta--pos {
+  font-weight: 600;
+  color: var(--teal-deep);
 }
 
 .dest-row-actions {
@@ -690,20 +835,24 @@
 /* The destination currently taking money — the one thing that matters most. */
 .dest-hero {
   padding: var(--s5);
-  border: 1px solid color-mix(in srgb, var(--teal) 40%, var(--line));
+  border: 1px solid var(--teal-30);
   border-radius: var(--r-lg);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--teal) 9%, #fff),
-    color-mix(in srgb, var(--yellow) 12%, #fff)
-  );
+  background: linear-gradient(135deg, var(--teal-08), var(--yellow-15));
   box-shadow: var(--shadow-card);
+}
+
+.dest-hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  flex-wrap: wrap;
 }
 
 .dest-hero-kicker {
   font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--teal);
 }
@@ -712,7 +861,7 @@
   margin: var(--s2) 0 var(--s1);
   font-size: var(--fs-xl);
   font-weight: 600;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
   word-break: break-word;
 }
 
@@ -729,9 +878,9 @@
   gap: 0.35rem;
   padding: 0.2rem 0.6rem;
   background: var(--surface-3);
-  font-size: 0.66rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--ls-caps);
   text-transform: uppercase;
   white-space: nowrap;
   color: var(--ink-muted);
@@ -747,12 +896,12 @@
 }
 
 .pill-on {
-  background: color-mix(in srgb, var(--teal) 13%, #fff);
+  background: var(--teal-12);
   color: var(--teal-deep);
 }
 
 .pill-ok {
-  background: color-mix(in srgb, var(--yellow) 45%, #fff);
+  background: var(--yellow-45);
   color: var(--ink);
 }
 
@@ -762,18 +911,18 @@
 }
 
 .pill-settled {
-  background: color-mix(in srgb, var(--teal) 12%, #fff);
+  background: var(--teal-12);
   color: var(--teal);
 }
 
 .pill-failed {
-  background: rgba(155, 28, 28, 0.1);
+  background: color-mix(in srgb, var(--danger) 10%, #fff);
   color: var(--danger);
 }
 
 .pill-prompted,
 .pill-pending {
-  background: color-mix(in srgb, var(--yellow) 45%, #fff);
+  background: var(--yellow-45);
   color: var(--ink);
 }
 
@@ -792,9 +941,9 @@
 .table th {
   padding: var(--s3) var(--s4);
   text-align: left;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-2xs);
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--ls-caps);
   text-transform: uppercase;
   color: var(--ink-faint);
   background: var(--surface-2);
@@ -829,7 +978,7 @@
 
 .table-ref {
   font-family: var(--mono);
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--ink-faint);
 }
 
@@ -854,11 +1003,18 @@
   font-weight: 600;
   color: var(--ink-faint);
   text-decoration: none;
-  transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
+  transition:
+    background var(--dur-fast) ease,
+    color var(--dur-fast) ease;
 }
 
 .segmented a:hover {
   color: var(--ink);
+}
+
+.segmented a:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
 }
 
 .segmented .on {
@@ -894,7 +1050,7 @@
   grid-column: 1;
   font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--ink-faint);
 }
@@ -906,7 +1062,7 @@
   gap: var(--s2);
   min-width: 0;
   font-family: var(--mono);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   word-break: break-all;
 }
 
@@ -920,6 +1076,16 @@
   align-self: center;
 }
 
+/* Drop the frame when the rows already sit inside a card's own border. */
+.copy-list--bare {
+  border: 0;
+}
+
+/* A hairline that separates a full-bleed body from the table below it. */
+.divide-b {
+  border-bottom: 1px solid var(--line-soft);
+}
+
 /* --- code ----------------------------------------------------------------- */
 
 .snippet {
@@ -931,7 +1097,7 @@
   background: var(--ink);
   color: var(--yellow);
   font-family: var(--mono);
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
   line-height: 1.7;
   white-space: pre;
   tab-size: 2;
@@ -988,18 +1154,18 @@
   flex: 0 0 auto;
   padding: 0.15rem 0.45rem;
   border-radius: var(--r-xs);
-  font-size: 0.62rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--ls-caps);
 }
 
 .method-get {
-  background: color-mix(in srgb, var(--teal) 13%, #fff);
+  background: var(--teal-12);
   color: var(--teal-deep);
 }
 
 .method-post {
-  background: color-mix(in srgb, var(--yellow) 55%, #fff);
+  background: var(--yellow-45);
   color: var(--ink);
 }
 
@@ -1021,7 +1187,9 @@
   border: 1px solid var(--line-soft);
   border-radius: var(--r-md);
   background: var(--surface-2);
-  transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease;
+  transition:
+    background var(--dur-fast) ease,
+    border-color var(--dur-fast) ease;
 }
 
 .checklist-item:hover {
@@ -1036,14 +1204,14 @@
   height: 1.4rem;
   border: 1px solid var(--line);
   background: var(--surface-3);
-  font-size: 0.75rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--ink-faint);
 }
 
 .checklist-done {
-  background: color-mix(in srgb, var(--teal) 8%, #fff);
-  border-color: color-mix(in srgb, var(--teal) 25%, transparent);
+  background: var(--teal-08);
+  border-color: var(--teal-30);
 }
 
 .checklist-done .checklist-mark {
@@ -1066,9 +1234,9 @@
 
 .checklist-tag {
   margin-left: auto;
-  font-size: 0.64rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--ls-caps);
   text-transform: uppercase;
   color: var(--ink-faint);
 }
@@ -1093,18 +1261,22 @@
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   background: var(--surface-2);
-  transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast) ease;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
 }
 
 .flow li:hover {
   transform: translateY(-3px);
   border-color: var(--line-strong);
+  box-shadow: var(--shadow-sm);
 }
 
 .flow b {
   font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: var(--ls-label);
   color: var(--teal);
 }
 
@@ -1114,11 +1286,16 @@
   line-height: 1.45;
 }
 
+/* Stack the flow vertically when it is a sequence rather than a summary. */
+.flow--stack {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 /* --- feedback ------------------------------------------------------------- */
 
 .note {
   font-size: var(--fs-sm);
-  line-height: 1.6;
+  line-height: var(--lh-loose);
   color: var(--ink-muted);
 }
 
@@ -1129,31 +1306,29 @@
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   font-size: var(--fs-md);
-  line-height: 1.55;
-}
-
-.callout-ok {
-  border-color: color-mix(in srgb, var(--teal) 30%, transparent);
-  background: color-mix(in srgb, var(--teal) 8%, #fff);
-  color: var(--teal-deep);
-  font-weight: 600;
-}
-
-.callout-warn {
-  border-color: color-mix(in srgb, var(--yellow) 65%, var(--line));
-  background: color-mix(in srgb, var(--yellow) 30%, #fff);
-  color: var(--ink);
-}
-
-.callout-error {
-  border-color: rgba(155, 28, 28, 0.3);
-  background: rgba(155, 28, 28, 0.07);
-  color: var(--danger);
-  font-weight: 500;
+  line-height: var(--lh);
 }
 
 .callout-title {
   font-weight: 600;
+}
+
+.callout-ok {
+  border-color: var(--teal-30);
+  background: var(--teal-08);
+  color: var(--teal-deep);
+}
+
+.callout-warn {
+  border-color: var(--yellow-70);
+  background: var(--yellow-30);
+  color: var(--ink);
+}
+
+.callout-error {
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+  background: var(--danger-08);
+  color: var(--danger);
 }
 
 /* Money received, stated once and prominently. */
@@ -1164,9 +1339,9 @@
   justify-content: space-between;
   gap: var(--s4);
   padding: var(--s4) var(--s5);
-  border: 1px solid color-mix(in srgb, var(--teal) 26%, transparent);
+  border: 1px solid var(--teal-30);
   border-radius: var(--r-lg);
-  background: color-mix(in srgb, var(--teal) 7%, #fff);
+  background: var(--teal-05);
 }
 
 .summary-bar strong {
@@ -1191,6 +1366,16 @@
   font-weight: 600;
   cursor: pointer;
   list-style: none;
+  transition: background var(--dur-fast) ease;
+}
+
+.explainer summary:hover {
+  background: var(--surface-3);
+}
+
+.explainer summary:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: -2px;
 }
 
 .explainer summary::-webkit-details-marker {
@@ -1215,15 +1400,14 @@
 .explainer-body {
   display: grid;
   gap: var(--s3);
-  padding: 0 var(--s4) var(--s4);
+  padding: var(--s3) var(--s4) var(--s4);
   border-top: 1px solid var(--line-soft);
-  padding-top: var(--s3);
 }
 
 .explainer-body p {
   color: var(--ink-muted);
   font-size: var(--fs-sm);
-  line-height: 1.6;
+  line-height: var(--lh-loose);
 }
 
 /* --- empty state ---------------------------------------------------------- */
@@ -1242,7 +1426,7 @@
   max-width: 46ch;
   color: var(--ink-muted);
   font-size: var(--fs-md);
-  line-height: 1.6;
+  line-height: var(--lh-loose);
 }
 
 /* On a wide canvas a full-bleed empty state reads as a stranded box. */
@@ -1251,10 +1435,17 @@
   padding: var(--s6) var(--s5);
 }
 
+/* An empty state nested inside a card body should not double its border. */
+.card-body .empty--bare {
+  padding: var(--s5) var(--s4);
+  border: 0;
+  background: none;
+}
+
 /* --- progress ------------------------------------------------------------- */
 
 .progress {
-  height: 4px;
+  height: 6px;
   background: var(--surface-3);
   overflow: hidden;
 }

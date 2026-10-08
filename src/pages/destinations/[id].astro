@@ -1,5 +1,6 @@
 ---
 import AppLayout from "../../layouts/AppLayout.astro";
+import Icon from "../../components/Icon.astro";
 import {
   savedDestinationFacts,
   savedDestinationLabel,
@@ -74,14 +75,14 @@ function addedDate(iso?: string | null): string {
 ---
 
 <AppLayout title={label} section="Destinations" current="destinations" email={gate.email}>
-  <a class="btn btn-ghost btn-sm" href="/destinations" style="margin-bottom: var(--s4)">
-    <span aria-hidden="true">←</span> All destinations
+  <a class="btn btn-ghost btn-sm mb-4" href="/destinations">
+    <Icon name="arrow-left" size="sm" /> All destinations
   </a>
 
   <header class="page-head">
     <div>
       <h1>{label}</h1>
-      <div class="dest-row-top" style="margin-top: var(--s3)">
+      <div class="dest-row-top mt-3">
         <span class={`pill pill-${status.tone}`}>{status.label}</span>
         <span class="dest-row-meta">{status.hint}</span>
       </div>
@@ -117,9 +118,7 @@ function addedDate(iso?: string | null): string {
       !dest.verified && (
         <p class="callout callout-warn" role="status">
           <span class="callout-title">This destination cannot receive money until it is confirmed.</span>
-          <span style="font-weight: 400">
-            Confirming checks the numbers and also sets it as your default.
-          </span>
+          <span>Confirming checks the numbers and also sets it as your default.</span>
         </p>
       )
     }
@@ -129,7 +128,7 @@ function addedDate(iso?: string | null): string {
         <h2>What happens when a customer pays</h2>
       </div>
       <div class="card-body">
-        <p style="color: var(--ink-muted); line-height: 1.65">{sentence}</p>
+        <p class="lede">{sentence}</p>
       </div>
     </section>
 

@@ -1,0 +1,79 @@
+/* ============================================================================
+   Malipo Connect — layer 4 of 4: utilities
+   ----------------------------------------------------------------------------
+   Loaded last, so a single-purpose helper always wins against a component
+   rule of equal specificity. Keep this file deliberately thin: anything that
+   describes a *thing* (a card, a pill, a button) belongs in components.css.
+   These describe one property on any element.
+   ========================================================================= */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Money, counts, till numbers — anything scanned column-wise. */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.mono {
+  font-family: var(--mono);
+}
+
+.muted {
+  color: var(--ink-muted);
+}
+
+.faint {
+  color: var(--ink-faint);
+}
+
+/* Text that must stay ink on a tinted or dark panel. */
+.ink {
+  color: var(--ink);
+}
+
+/* Vertical rhythm, on the token scale. */
+.mt-1 { margin-top: var(--s1); }
+.mt-2 { margin-top: var(--s2); }
+.mt-3 { margin-top: var(--s3); }
+.mt-4 { margin-top: var(--s4); }
+.mt-5 { margin-top: var(--s5); }
+.mt-6 { margin-top: var(--s6); }
+.mt-7 { margin-top: var(--s7); }
+.mb-1 { margin-bottom: var(--s1); }
+.mb-2 { margin-bottom: var(--s2); }
+.mb-3 { margin-bottom: var(--s3); }
+.mb-4 { margin-bottom: var(--s4); }
+.mb-5 { margin-bottom: var(--s5); }
+.mb-6 { margin-bottom: var(--s6); }
+.mt-auto { margin-top: auto; }
+.ml-auto { margin-left: auto; }
+.flush { padding: 0; }
+.gap-2 { gap: var(--s2); }
+
+/* A display figure: a large, tightly-set number or verified name. */
+.t-2xl {
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+/* Vertical rhythm between stacked blocks. */
+.stack > * + * {
+  margin-top: var(--s4);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3);
+}

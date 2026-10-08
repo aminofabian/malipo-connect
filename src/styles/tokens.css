@@ -8,23 +8,45 @@
    This file holds *decisions* only. Chrome lives in shell.css, the widget
    vocabulary in components.css. Keep the split — a single flat sheet is what
    made these pages hard to organise.
+
+   The scale is deliberately small and closed: every colour, size, space and
+   shadow in the app resolves to one of the tokens below, so a change here
+   moves the whole product together.
    ========================================================================= */
 
 :root {
   /* --- brand -------------------------------------------------------------- */
   --yellow: #fef27f;
   --yellow-deep: #f5e86a;
-  --yellow-wash: rgba(254, 242, 127, 0.58);
   --mpesa: #0f6b68;
   --teal: #0f6b68;
   --teal-deep: #0a524f;
-  --danger: #9b1c1c;
+
+  /* --- status ------------------------------------------------------------- */
   --ok: #0f6b68;
+  --warn: #b7791f;
+  --danger: #9b1c1c;
+  --up: #22c55e;
+  --down: #ef4444;
+
+  /* --- tint steps --------------------------------------------------------- */
+  /* Brand hue mixed into white. Two or three steps per hue is all the app
+     needs; ad-hoc percentages read as accidents, these read as a system. */
+  --teal-05: color-mix(in srgb, var(--teal) 5%, #fff);
+  --teal-08: color-mix(in srgb, var(--teal) 8%, #fff);
+  --teal-12: color-mix(in srgb, var(--teal) 12%, #fff);
+  --teal-30: color-mix(in srgb, var(--teal) 30%, #fff);
+  --yellow-15: color-mix(in srgb, var(--yellow) 15%, #fff);
+  --yellow-30: color-mix(in srgb, var(--yellow) 30%, #fff);
+  --yellow-45: color-mix(in srgb, var(--yellow) 45%, #fff);
+  --yellow-70: color-mix(in srgb, var(--yellow) 70%, #fff);
+  --danger-08: color-mix(in srgb, var(--danger) 8%, #fff);
 
   /* --- ink & ground ------------------------------------------------------- */
   --ink: #0a0a0a;
   --ink-muted: #45494e;
-  --ink-faint: #767c83;
+  --ink-faint: #6e747b;
+  --ink-hair: #9aa0a6;
   --bg: #bfc3c7;
   --bg-soft: #e3e6e9;
   --surface: #ffffff;
@@ -32,9 +54,10 @@
   --surface-3: #eceef0;
 
   /* --- lines -------------------------------------------------------------- */
-  --line: rgba(10, 10, 10, 0.13);
+  --line: rgba(10, 10, 10, 0.12);
   --line-soft: rgba(10, 10, 10, 0.07);
-  --line-strong: rgba(10, 10, 10, 0.28);
+  --line-strong: rgba(10, 10, 10, 0.26);
+  --line-invert: rgba(255, 255, 255, 0.12);
 
   /* --- radius ------------------------------------------------------------- */
   /* No rounded corners. Every rectangular surface — cards, panels, buttons,
@@ -48,32 +71,57 @@
   --r-full: 999px;
 
   /* --- spacing scale ------------------------------------------------------ */
-  --s1: 0.25rem;
-  --s2: 0.5rem;
-  --s3: 0.75rem;
-  --s4: 1rem;
-  --s5: 1.25rem;
-  --s6: 1.5rem;
-  --s7: 2rem;
-  --s8: 2.5rem;
-  --s9: 3rem;
+  --s0: 0.125rem; /* 2  */
+  --s1: 0.25rem; /* 4  */
+  --s-half: 0.375rem; /* 6  */
+  --s2: 0.5rem; /* 8  */
+  --s3: 0.75rem; /* 12 */
+  --s4: 1rem; /* 16 */
+  --s5: 1.25rem; /* 20 */
+  --s6: 1.5rem; /* 24 */
+  --s7: 2rem; /* 32 */
+  --s8: 2.5rem; /* 40 */
+  --s9: 3rem; /* 48 */
 
   /* --- type --------------------------------------------------------------- */
-  --fs-xs: 0.72rem;
-  --fs-sm: 0.8125rem;
-  --fs-md: 0.875rem;
-  --fs-base: 0.9375rem;
-  --fs-lg: 1.0625rem;
-  --fs-xl: 1.375rem;
-  --fs-2xl: 1.75rem;
-  --fs-3xl: 2.125rem;
+  --fs-2xs: 0.6875rem; /* 11 */
+  --fs-xs: 0.75rem; /* 12 */
+  --fs-sm: 0.8125rem; /* 13 */
+  --fs-md: 0.875rem; /* 14 */
+  --fs-base: 0.9375rem; /* 15 */
+  --fs-lg: 1.0625rem; /* 17 */
+  --fs-xl: 1.375rem; /* 22 */
+  --fs-2xl: 1.75rem; /* 28 */
+  --fs-3xl: 2.125rem; /* 34 */
+
+  --lh-tight: 1.15;
+  --lh-snug: 1.35;
+  --lh: 1.5;
+  --lh-loose: 1.65;
+
+  --ls-tight: -0.02em; /* headings, money */
+  --ls-caps: 0.08em; /* pills, methods, tags */
+  --ls-label: 0.13em; /* section labels */
+  --ls-kicker: 0.17em; /* page kickers, nav labels */
+
   --font: "Sora Variable", "Sora", "Avenir Next", "Segoe UI", system-ui, sans-serif;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
+  /* --- controls ----------------------------------------------------------- */
+  --control-h: 2.5rem; /* 40 — buttons, inputs */
+  --control-h-sm: 2rem; /* 32 — dense controls */
+  --control-pad: 1.05rem; /* horizontal padding */
+
+  --icon-md: 1rem;
+
+  /* --- focus -------------------------------------------------------------- */
+  --ring: 0 0 0 3px color-mix(in srgb, var(--teal) 22%, transparent);
+  --ring-danger: 0 0 0 3px color-mix(in srgb, var(--danger) 18%, transparent);
+
   /* --- elevation ---------------------------------------------------------- */
   --shadow-sm: 0 1px 2px rgba(10, 10, 10, 0.06);
-  --shadow-card: 0 1px 2px rgba(10, 10, 10, 0.05), 0 14px 32px -20px rgba(10, 10, 10, 0.5);
-  --shadow-raise: 0 2px 4px rgba(10, 10, 10, 0.05), 0 22px 48px -26px rgba(10, 10, 10, 0.55);
+  --shadow-card: 0 1px 2px rgba(10, 10, 10, 0.04), 0 12px 28px -18px rgba(10, 10, 10, 0.45);
+  --shadow-raise: 0 2px 4px rgba(10, 10, 10, 0.05), 0 20px 44px -24px rgba(10, 10, 10, 0.5);
   --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 
   /* --- motion ------------------------------------------------------------- */
@@ -112,7 +160,7 @@ body {
   min-height: 100dvh;
   font-family: var(--font);
   font-size: var(--fs-base);
-  line-height: 1.5;
+  line-height: var(--lh);
   color: var(--ink);
   /* Beams sit behind the canvas, not under the opaque rail. */
   background-color: transparent;
@@ -126,6 +174,7 @@ body {
   background-repeat: no-repeat;
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
@@ -136,13 +185,27 @@ h2,
 h3,
 h4 {
   font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.03em;
+  line-height: var(--lh-tight);
+  letter-spacing: -0.025em;
   text-wrap: balance;
+}
+
+/* The design sets bold at 600; keep inline emphasis on the same weight so
+   prose and headings agree. */
+strong,
+b {
+  font-weight: 600;
 }
 
 p {
   text-wrap: pretty;
+}
+
+/* A share of body copy that appears in prose, cards and auth screens alike. */
+.lede {
+  color: var(--ink-muted);
+  font-size: var(--fs-base);
+  line-height: var(--lh-loose);
 }
 
 ::selection {
@@ -217,37 +280,8 @@ hr {
 }
 
 /* --- utilities ------------------------------------------------------------ */
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* Money, counts, till numbers — anything scanned column-wise. */
-.num {
-  font-variant-numeric: tabular-nums;
-}
-
-.mono {
-  font-family: var(--mono);
-}
-
-.stack > * + * {
-  margin-top: var(--s4);
-}
-
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s3);
-}
+/* Single-purpose helpers live in utilities.css, which loads last so a helper
+   can always win against a component rule. */
 
 @media (prefers-reduced-motion: reduce) {
   *,

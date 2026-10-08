@@ -88,7 +88,7 @@ export default function TestPayment({
       <div className="card">
         <div className="card-body">
           <span className="section-kicker">Payment settled</span>
-          <p className="callout callout-ok" style={{ marginTop: "0.75rem" }}>
+          <p className="callout callout-ok mt-3">
             Received KES {kesLabel}. Your integration works.
           </p>
         </div>
@@ -149,9 +149,7 @@ export default function TestPayment({
         {status === "prompting" && (
           <p className="callout callout-warn" role="status">
             <span className="callout-title">Waiting for you.</span>
-            <span style={{ fontWeight: 400 }}>
-              Check your phone for the M-Pesa prompt and enter your PIN.
-            </span>
+            <span>Check your phone for the M-Pesa prompt and enter your PIN.</span>
           </p>
         )}
 
@@ -162,7 +160,12 @@ export default function TestPayment({
         )}
 
         <div className="actions">
-          <button type="submit" className="btn btn-primary" disabled={status === "prompting"}>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={status === "prompting"}
+            aria-busy={status === "prompting"}
+          >
             {status === "prompting" ? "Waiting…" : `Send KES ${kesLabel}`}
           </button>
         </div>

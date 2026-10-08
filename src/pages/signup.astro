@@ -69,10 +69,8 @@ if (Astro.request.method === "POST") {
     { title: "Get paid", body: "Customers approve an M-Pesa prompt on their own phone." },
   ]}
 >
-  <h1 style="font-size: var(--fs-2xl)">Create your account</h1>
-  <p class="lede" style="color: var(--ink-muted); margin-top: var(--s2); margin-bottom: var(--s6)">
-    One account for destinations, keys, and test payments.
-  </p>
+  <h1>Create your account</h1>
+  <p class="lede">One account for destinations, keys, and test payments.</p>
 
   {
     error && (
@@ -133,7 +131,7 @@ if (Astro.request.method === "POST") {
     </div>
   </form>
 
-  <p class="note" style="margin-top: var(--s6)">
+  <p class="note">
     Already have an account? <a href={`/signin?next=${encodeURIComponent(next)}`}>Sign in</a>
   </p>
 </AuthLayout>

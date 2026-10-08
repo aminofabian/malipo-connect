@@ -76,7 +76,7 @@ const payment = await res.json();
           <h2>Website URL</h2>
         </div>
         <div class="card-body">
-          <p class="note" style="margin-bottom: var(--s4)">
+          <p class="note mb-4">
             The <code>https</code> address of the site you are integrating. When a customer pays or
             cancels, we POST the result here. A payment that carries its own{" "}
             <code>callback_url</code> uses that instead.
@@ -107,14 +107,14 @@ const payment = await res.json();
                 </div>
               </form>
             ) : (
-              <div class="empty" style="padding: var(--s5) var(--s4)">
+              <div class="empty">
                 <p>Publish your API keys first — the website URL is stored with them.</p>
                 <a class="btn btn-primary btn-sm" href="/keys">Go to Keys</a>
               </div>
             )
           }
 
-          <p class="note" style="margin-top: var(--s4)">
+          <p class="note mt-4">
             We sign every callback with your webhook signing secret (<code>X-Malipo-Signature</code>).{" "}
             <a href="/guide#verify">How to verify a callback</a>.
           </p>
@@ -126,7 +126,7 @@ const payment = await res.json();
           <h2>Your account</h2>
         </div>
         <div class="card-body">
-          <p class="note" style="margin-bottom: var(--s4)">
+          <p class="note mb-4">
             Your secret keys are shown once when issued. If you have lost them, rotate on the{" "}
             <a href="/keys">Keys</a> page — the old ones stop immediately.
           </p>
@@ -172,7 +172,7 @@ const payment = await res.json();
           <h2>API details</h2>
         </div>
         <div class="card-body">
-          <div class="copy-list" style="margin-bottom: var(--s4)">
+          <div class="copy-list mb-4">
             <div class="copy-row">
               <span class="copy-row-label">Endpoint base URL</span>
               <span class="copy-row-value">
@@ -202,7 +202,7 @@ const payment = await res.json();
           <h2>Authentication</h2>
         </div>
         <div class="card-body">
-          <p class="note" style="margin-bottom: var(--s4)">
+          <p class="note mb-4">
             Send your client secret on every request, one of these two ways:
           </p>
           <div class="copy-list">
@@ -226,7 +226,7 @@ const payment = await res.json();
               </span>
             </div>
           </div>
-          <p class="note" style="margin-top: var(--s4)">
+          <p class="note mt-4">
             Keep the secret on your server. Never ship it to the browser.
           </p>
         </div>
@@ -243,11 +243,11 @@ const payment = await res.json();
             </button>
           </div>
           <div class="card-body">
-            <p class="note" style="margin-bottom: var(--s3)">
+            <p class="note mb-3">
               Paste your client secret where it says <code>sk_live_…</code>.
             </p>
             <pre class="snippet">{quickstart}</pre>
-            <p class="note" style="margin-top: var(--s4)">
+            <p class="note mt-4">
               Then poll <code>GET {base}/v1/payments/{"{id}"}</code>, or let us POST to your
               website URL above. <a href="/guide">Read the full guide</a>.
             </p>
@@ -265,8 +265,12 @@ const payment = await res.json();
       const text = btn.getAttribute("data-copy-btn") ?? "";
       try {
         await navigator.clipboard.writeText(text);
+        btn.classList.add("is-copied");
         btn.textContent = "Copied";
-        setTimeout(() => (btn.textContent = label), 1200);
+        setTimeout(() => {
+          btn.classList.remove("is-copied");
+          btn.textContent = label;
+        }, 1200);
       } catch {
         const span = btn.previousElementSibling;
         if (span) {

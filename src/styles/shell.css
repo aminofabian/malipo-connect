@@ -33,6 +33,14 @@
   overscroll-behavior: contain;
 }
 
+/* A thead-thin scrollbar so the rail never grows a heavy system scrollbar. */
+.rail::-webkit-scrollbar {
+  width: 8px;
+}
+.rail::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -52,7 +60,7 @@
 }
 
 .brand strong {
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -60,9 +68,9 @@
 }
 
 .rail-tag {
-  font-size: 0.62rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.42);
 }
@@ -70,14 +78,14 @@
 /* Nav is a labelled group so four bare links stop reading as a row of tabs. */
 .nav-group {
   display: grid;
-  gap: 0.15rem;
+  gap: var(--s0);
 }
 
 .nav-label {
   padding: 0 var(--s3) var(--s2);
-  font-size: 0.62rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: var(--ls-kicker);
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.34);
 }
@@ -103,6 +111,11 @@
   color: #fff;
 }
 
+.navlink:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
+}
+
 /* Active page: yellow marker plus a lifted ground — legible without a heavy pill. */
 .navlink-on {
   background: rgba(255, 255, 255, 0.1);
@@ -113,7 +126,7 @@
 .navlink-on::before {
   content: "";
   position: absolute;
-  left: -1rem;
+  left: calc(-1 * var(--s4));
   top: 50%;
   width: 3px;
   height: 1.1rem;
@@ -123,8 +136,8 @@
 
 .navlink svg {
   flex: 0 0 auto;
-  width: 1rem;
-  height: 1rem;
+  width: var(--icon-md);
+  height: var(--icon-md);
   opacity: 0.7;
 }
 
@@ -143,16 +156,16 @@
   display: grid;
   gap: var(--s3);
   padding-top: var(--s4);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--line-invert);
 }
 
 .svc-tag {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-2xs);
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.5);
 }
@@ -166,13 +179,13 @@
 }
 
 .svc-dot[data-state="up"] {
-  background: #4ade80;
-  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.18);
+  background: var(--up);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--up) 20%, transparent);
 }
 
 .svc-dot[data-state="down"] {
-  background: #f87171;
-  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.18);
+  background: var(--down);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--down) 20%, transparent);
 }
 
 .svc-dot[data-state="unknown"] {
@@ -255,7 +268,7 @@
   border-radius: var(--r-full);
   background: var(--ink);
   color: #fff;
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -285,22 +298,19 @@
   margin-bottom: var(--s2);
   font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: var(--ls-kicker);
   text-transform: uppercase;
   color: var(--teal);
 }
 
 .page-head h1 {
   font-size: var(--fs-3xl);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.035em;
 }
 
 .page-head .lede {
   max-width: 58ch;
   margin-top: var(--s3);
-  color: var(--ink-muted);
-  font-size: var(--fs-base);
-  line-height: 1.6;
 }
 
 .page-actions {
@@ -341,11 +351,15 @@
   height: 1.5rem;
   border: 1px solid var(--line-strong);
   background: var(--surface);
-  font-size: 0.68rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--ink-faint);
-  transition: all var(--dur) var(--ease-out);
+  transition:
+    background var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out),
+    color var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out);
 }
 
 .steps li span {
@@ -379,7 +393,7 @@
   border-color: var(--ink);
   background: var(--yellow);
   color: var(--ink);
-  box-shadow: 0 0 0 4px var(--yellow-wash);
+  box-shadow: 0 0 0 4px rgba(254, 242, 127, 0.5);
 }
 
 .steps li[aria-current] {
@@ -399,12 +413,12 @@
   gap: var(--s3);
   margin-bottom: var(--s5);
   padding: var(--s3) var(--s4);
-  border: 1px solid rgba(155, 28, 28, 0.28);
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
   border-radius: var(--r-md);
-  background: rgba(155, 28, 28, 0.07);
+  background: var(--danger-08);
   color: var(--danger);
   font-size: var(--fs-sm);
-  line-height: 1.5;
+  line-height: var(--lh);
 }
 
 .svc-banner[hidden] {
@@ -425,6 +439,8 @@
 }
 
 .svc-dismiss {
+  display: grid;
+  place-items: center;
   margin-left: auto;
   padding: 0 var(--s2);
   border: 0;
@@ -465,14 +481,15 @@
 .auth-pitch h2 {
   max-width: 16ch;
   font-size: var(--fs-2xl);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.035em;
 }
 
 .auth-pitch p {
   max-width: 46ch;
+  margin-top: var(--s3);
   color: rgba(255, 255, 255, 0.6);
   font-size: var(--fs-base);
-  line-height: 1.65;
+  line-height: var(--lh-loose);
 }
 
 .auth-form-wrap {
@@ -485,6 +502,39 @@
 .auth-form {
   width: min(100%, 26rem);
   margin-inline: auto;
+}
+
+.auth-form h1 {
+  font-size: var(--fs-2xl);
+  letter-spacing: -0.035em;
+}
+
+.auth-form .lede {
+  margin-top: var(--s2);
+  margin-bottom: var(--s6);
+}
+
+.auth-form > .note {
+  margin-top: var(--s6);
+}
+
+/* The pitch list is the dark inverse of .flow. */
+.auth-pitch .flow {
+  color: #fff;
+}
+
+.auth-pitch .flow li {
+  border-color: var(--line-invert);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.auth-pitch .flow b {
+  color: var(--yellow);
+}
+
+.auth-pitch .flow strong {
+  display: block;
+  margin-bottom: 2px;
 }
 
 /* --- responsive ----------------------------------------------------------- */
@@ -534,5 +584,27 @@
     border-right: 0;
     border-bottom: 1px solid var(--line);
     padding: var(--s7) var(--gutter);
+  }
+}
+
+@media (max-width: 620px) {
+  .rail {
+    gap: var(--s3);
+  }
+
+  .navlink {
+    padding: 0.5rem var(--s2);
+  }
+
+  .page {
+    padding-top: var(--s6);
+  }
+
+  .steps li span {
+    display: none;
+  }
+
+  .steps li {
+    justify-content: center;
   }
 }

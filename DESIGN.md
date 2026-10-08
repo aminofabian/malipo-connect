@@ -30,16 +30,23 @@ ink CTAs, spaced wordmark, Sora, `--ease-out` motion. Nothing in the app invents
 | Font | Sora Variable | Display + body |
 | Motion | `--ease-out` / `--dur*` | Entrances, hover lift |
 
+The scale is closed and complete: type (`--fs-2xs`→`--fs-3xl`), line-height (`--lh-*`), letter-spacing
+(`--ls-*`), space (`--s0`→`--s9`), controls (`--control-h`, `--control-h-sm`, `--control-pad`), focus
+rings (`--ring`, `--ring-danger`), elevation (`--shadow-*`) and brand tints (`--teal-*`, `--yellow-*`,
+`--danger-08`). A component should never reach for a raw rem or hex — if it needs a value the scale
+does not have, add a step here first.
+
 ## Layers
 
-Styles are three files, loaded in order by every layout. Keep the split — a single flat sheet is
-what made these pages hard to change.
+Styles are four files, loaded in order by every layout. Keep the split — a single flat sheet is
+what made these pages hard to change. Order matters: `utilities.css` must come last.
 
 | File | Owns |
 |---|---|
 | `styles/tokens.css` | Tokens, reset, base type, the gray ground + beams. **Decisions only.** |
 | `styles/shell.css` | App chrome: rail, top bar, page frame, stepper, auth split. |
 | `styles/components.css` | The widget vocabulary: cards, buttons, fields, tables, pills, callouts. |
+| `styles/utilities.css` | Single-purpose helpers (`.mt-*`, `.muted`, `.sr-only`). **Loaded last**, so a helper beats a component rule of equal specificity — that is why they are not in `tokens.css`. |
 
 ## Layout
 

@@ -1,14 +1,34 @@
 ---
 /**
- * Inline 20px stroke icons for the rail. Kept local so the shell carries no
- * icon-library dependency. Every glyph uses `currentColor`, so the nav sets
- * colour per state (active, hover, muted).
+ * Inline stroke icons. Kept local so the shell carries no icon-library
+ * dependency. Every glyph is drawn on the same 20×20 grid at 1.5 stroke, uses
+ * `currentColor`, and sits on the same optical line, so a rail, a button and a
+ * checklist mark all read as one family.
  */
 interface Props {
-  name: "grid" | "pin" | "key" | "sliders" | "book";
+  name:
+    | "grid"
+    | "pin"
+    | "key"
+    | "sliders"
+    | "book"
+    | "arrow-left"
+    | "arrow-right"
+    | "check"
+    | "circle"
+    | "copy"
+    | "external"
+    | "alert"
+    | "info"
+    | "close";
+  /** Optical size. Defaults to `md` (16px). */
+  size?: "sm" | "md" | "lg";
+  class?: string;
 }
 
-const { name } = Astro.props;
+const { name, size = "md", class: className } = Astro.props;
+
+const px = { sm: 14, md: 16, lg: 20 }[size];
 
 const glyphs: Record<Props["name"], string> = {
   grid: `<rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/>`,
@@ -16,16 +36,28 @@ const glyphs: Record<Props["name"], string> = {
   key: `<circle cx="7.5" cy="10" r="3.75"/><path d="M11.25 10H17M14.5 10v2.5M16.25 10v1.75"/>`,
   sliders: `<path d="M3 5.5h4M10.5 5.5H17M3 14.5h6.5M13 14.5H17"/><circle cx="8.75" cy="5.5" r="1.75"/><circle cx="11.25" cy="14.5" r="1.75"/>`,
   book: `<path d="M3.5 4.75A1.25 1.25 0 0 1 4.75 3.5H9v13H4.75a1.25 1.25 0 0 1-1.25-1.25Z"/><path d="M16.5 4.75a1.25 1.25 0 0 0-1.25-1.25H11v13h4.25a1.25 1.25 0 0 0 1.25-1.25Z"/>`,
+  "arrow-left": `<path d="M16 10H4M9 5l-5 5 5 5"/>`,
+  "arrow-right": `<path d="M4 10h12M11 5l5 5-5 5"/>`,
+  check: `<path d="M4.5 10.5 8 14l7.5-8"/>`,
+  circle: `<circle cx="10" cy="10" r="5.25"/>`,
+  copy: `<rect x="7.5" y="7.5" width="8" height="8" rx="1"/><path d="M12.5 7.5V5.75A1.75 1.75 0 0 0 10.75 4h-5A1.75 1.75 0 0 0 4 5.75v5a1.75 1.75 0 0 0 1.75 1.75H7.5"/>`,
+  external: `<path d="M11.5 4H16v4.5M16 4l-6.5 6.5"/><path d="M14 12.5v2.75A1.75 1.75 0 0 1 12.25 17h-7.5A1.75 1.75 0 0 1 3 15.25v-7.5A1.75 1.75 0 0 1 4.75 6H8"/>`,
+  alert: `<path d="M10 3.25 17.5 16.5h-15Z"/><path d="M10 8.5v3.5M10 14.4v.2"/>`,
+  info: `<circle cx="10" cy="10" r="7"/><path d="M10 9.25v4.5M10 6.4v.2"/>`,
+  close: `<path d="M6 6l8 8M14 6l-8 8"/>`,
 };
 ---
 
 <svg
   viewBox="0 0 20 20"
+  width={px}
+  height={px}
   fill="none"
   stroke="currentColor"
   stroke-width="1.5"
   stroke-linecap="round"
   stroke-linejoin="round"
+  class={className}
   aria-hidden="true"
   set:html={glyphs[name]}
 />
