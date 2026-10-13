@@ -46,6 +46,7 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
         client_id: secrets.client_id,
         client_secret: secrets.client_secret,
         webhook_secret: secrets.webhook_secret,
+        rotated: Boolean(secrets.rotated),
         mode,
       },
       200,

@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 type Mode = "live" | "test";
-type Revealed = { client_id: string; client_secret: string; webhook_secret: string };
+type Revealed = { client_id: string; client_secret: string; webhook_secret: string; rotated?: boolean };
 
 /**
  * Reveal the API secrets on demand, behind the account password. Nothing is
@@ -46,6 +46,7 @@ export default function RevealKeys({ mode, hasKey }: { mode: Mode; hasKey: boole
         client_id: data.client_id ?? "",
         client_secret: data.client_secret,
         webhook_secret: data.webhook_secret ?? "",
+        rotated: Boolean(data.rotated),
       });
       setStage("revealed");
       setPassword("");
@@ -76,6 +77,12 @@ export default function RevealKeys({ mode, hasKey }: { mode: Mode; hasKey: boole
   if (stage === "revealed" && secrets) {
     return (
       <div>
+        {secrets.rotated && (
+          <p className="callout callout-warn" role="status">
+            This key was created before secrets could be stored, so we issued a fresh secret — update
+            your server, the previous one no longer works.
+          </p>
+        )}
         <div className="copy-list">
           <div className="copy-row">
             <span className="copy-row-label">Client secret</span>

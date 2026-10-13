@@ -169,7 +169,13 @@ export async function revealKeys(
   password: string,
   mode: ApiMode = "live",
   ip?: string,
-): Promise<{ client_id: string; client_secret: string; webhook_secret: string; mode?: ApiMode }> {
+): Promise<{
+  client_id: string;
+  client_secret: string;
+  webhook_secret: string;
+  mode?: ApiMode;
+  rotated?: boolean;
+}> {
   return malipoFetch(`/internal/v1/merchants/${encodeURIComponent(businessId)}/keys/reveal`, {
     method: "POST",
     body: JSON.stringify({ password, mode, ip }),
