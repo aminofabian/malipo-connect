@@ -610,6 +610,13 @@
     padding: 0.5rem var(--s2);
   }
 
+  /* The page heading repeats the title, and the account row repeats the rail
+     footer — so on a phone the top bar keeps only the mode switch and avatar. */
+  .topbar-trail,
+  .topbar-user span:not(.avatar) {
+    display: none;
+  }
+
   .page {
     padding-top: var(--s6);
   }

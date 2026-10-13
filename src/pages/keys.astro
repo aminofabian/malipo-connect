@@ -35,7 +35,6 @@ if (Astro.request.method === "POST") {
       const secrets = await provisionKeys(tenantId, mode);
       setOnceSecrets(Astro.cookies, secrets);
       once = secrets;
-      notice = sandbox ? "New sandbox key issued." : "New key issued.";
       merchant = await syncFromService(tenantId);
     } else if (action === "reset") {
       await resetTestData(tenantId);
@@ -166,13 +165,12 @@ function when(iso: string | null | undefined) {
           </section>
         ) : once ? (
           <>
-            <p class="callout callout-warn" role="status">
-              <span class="callout-title">
-                {notice === "New key issued." || notice === "New sandbox key issued."
-                  ? "New key issued. "
-                  : ""}Copy this now.
+            <p class="callout callout-ok" role="status">
+              <span class="callout-title">New secret — copy it now.</span>
+              <span>
+                You can reveal it again any time with your account password, here or in Settings.
+                Keep it on your server; never ship it to the browser.
               </span>
-              <span>Refreshing the page hides the key forever.</span>
             </p>
 
             <section class="card">
@@ -436,7 +434,8 @@ function when(iso: string | null | undefined) {
           <p>
             <strong>Client secret</strong> (<code>{prefix}…</code>) authenticates your server on every
             request. <strong>Webhook signing secret</strong> (<code>{sandbox ? "whsec_test_" : "whsec_"}…</code>) proves a
-            callback really came from Malipo. Both are shown once, when they are issued.
+            callback really came from Malipo. Both stay hidden — reveal them with your account
+            password.
           </p>
           <p>
             The <strong>client ID</strong> (<code>{pkPrefix}…</code>) is not a secret — it is safe to

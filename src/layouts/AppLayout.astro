@@ -111,19 +111,24 @@ const testMode = getApiMode(Astro.cookies) === "test";
                 <strong>{title}</strong>
               </p>
               <div class="topbar-right">
-                <form method="post" action="/api/mode" class="mode-form">
-                  <input type="hidden" name="mode" value={testMode ? "live" : "test"} />
-                  <input type="hidden" name="next" value={Astro.url.pathname} />
-                  <button
-                    type="submit"
-                    class:list={["mode-toggle", { "mode-toggle-on": testMode }]}
-                    aria-pressed={testMode}
-                    title="Switch between live and sandbox"
+                <div class="segmented" role="group" aria-label="Live or sandbox mode">
+                  <a
+                    class:list={[{ on: !testMode }]}
+                    href={`/api/mode?mode=live&next=${encodeURIComponent(Astro.url.pathname)}`}
+                    aria-current={!testMode ? "true" : undefined}
+                    title="Take real payments"
                   >
-                    <span class="mode-dot" aria-hidden="true" />
-                    {testMode ? "Test mode" : "Live mode"}
-                  </button>
-                </form>
+                    Live
+                  </a>
+                  <a
+                    class:list={[{ on: testMode }]}
+                    href={`/api/mode?mode=test&next=${encodeURIComponent(Astro.url.pathname)}`}
+                    aria-current={testMode ? "true" : undefined}
+                    title="Sandbox — no real money moves"
+                  >
+                    Test
+                  </a>
+                </div>
                 {email && (
                   <span class="topbar-user">
                     <span class="avatar" aria-hidden="true">{initial}</span>
@@ -184,42 +189,6 @@ const testMode = getApiMode(Astro.cookies) === "test";
     }
   </body>
 </html>
-
-<style>
-  .mode-form {
-    display: inline-flex;
-    margin: 0;
-  }
-
-  .mode-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.3rem 0.7rem;
-    border: 1px solid var(--line, #d8d8d8);
-    border-radius: 999px;
-    background: transparent;
-    font: inherit;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    color: inherit;
-  }
-
-  .mode-toggle-on {
-    border-color: #b8860b;
-    background: #fdf3d3;
-    color: #6b4e00;
-  }
-
-  .mode-dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 999px;
-    background: currentColor;
-    opacity: 0.85;
-  }
-</style>
 
 <script>
   // At-a-glance health + a dismissible banner, so a down back-end is visible

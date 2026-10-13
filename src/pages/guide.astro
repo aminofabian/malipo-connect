@@ -62,8 +62,8 @@ const toc = [
         <p>Send that key on every request:</p>
         <pre class="snippet">Authorization: Bearer sk_live_…</pre>
         <p>
-          The key is shown once. If you lose it, rotate it in Connect — the old key stops working
-          immediately.
+          Your secret stays hidden in Connect — reveal it with your account password whenever you
+          need it. If one is ever exposed, rotate it, and the old key stops working immediately.
         </p>
         <p>
           The base URL is the one in the request Connect copied for you. In production that is{" "}
@@ -261,7 +261,7 @@ if (payment.status === "settled") {
         <p>
           Every callback is signed, so you can check it really came from Malipo. Take an HMAC-SHA256
           of the <strong>raw request body</strong> using your webhook signing secret (the{" "}
-          <code>whsec_…</code> shown in Connect), and compare it to the{" "}
+          <code>whsec_…</code> you reveal in Connect), and compare it to the{" "}
           <code>X-Malipo-Signature</code> header:
         </p>
         <pre class="snippet">{`X-Malipo-Signature: sha256=<hex digest>`}</pre>
