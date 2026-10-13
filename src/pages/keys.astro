@@ -1,5 +1,6 @@
 ---
 import AppLayout from "../layouts/AppLayout.astro";
+import RevealKeys from "../islands/RevealKeys.tsx";
 import { destinationLabel } from "../lib/destination";
 import { getApiMode, requireMerchant, setOnceSecrets, takeOnceSecrets } from "../lib/session";
 import {
@@ -220,13 +221,10 @@ function when(iso: string | null | undefined) {
         ) : (
           <div class="card">
             <div class="card-head">
-              <h2>Your charge request</h2>
+              <h2>Your keys</h2>
             </div>
             <div class="card-body">
-              <p class="note">
-                This key was already shown. Rotate below to copy a new request — the old key stops
-                working immediately. <a href="/guide">Read the guide</a>.
-              </p>
+              <RevealKeys client:load mode={mode} hasKey={hasKey} />
             </div>
           </div>
         )

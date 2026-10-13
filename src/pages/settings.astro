@@ -1,5 +1,6 @@
 ---
 import AppLayout from "../layouts/AppLayout.astro";
+import RevealKeys from "../islands/RevealKeys.tsx";
 import { getApiMode, requireMerchant } from "../lib/session";
 import { publicApiBase, setWebhookUrl, syncFromService } from "../lib/store";
 
@@ -150,22 +151,10 @@ const payment = await res.json();
                 }
               </span>
             </div>
-            <div class="copy-row">
-              <span class="copy-row-label">Client secret</span>
-              <span class="copy-row-value">
-                <span class={`pill ${keyId ? "pill-on" : "pill-draft"}`}>
-                  {keyId ? "Issued (shown once)" : "Not issued"}
-                </span>
-              </span>
-            </div>
-            <div class="copy-row">
-              <span class="copy-row-label">Webhook secret</span>
-              <span class="copy-row-value">
-                <span class={`pill ${keyId ? "pill-on" : "pill-draft"}`}>
-                  {keyId ? "Issued (shown once)" : "Not issued"}
-                </span>
-              </span>
-            </div>
+          </div>
+
+          <div class="mt-4">
+            <RevealKeys client:load mode={mode} hasKey={hasKey} />
           </div>
         </div>
       </section>

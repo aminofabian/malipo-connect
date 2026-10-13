@@ -160,6 +160,22 @@ export async function setWebhookUrl(businessId: string, url: string, mode: ApiMo
   });
 }
 
+/**
+ * Reveal the active key's secrets — gated by the account password (server-side).
+ * Internal only; never called from the browser directly.
+ */
+export async function revealKeys(
+  businessId: string,
+  password: string,
+  mode: ApiMode = "live",
+  ip?: string,
+): Promise<{ client_id: string; client_secret: string; webhook_secret: string; mode?: ApiMode }> {
+  return malipoFetch(`/internal/v1/merchants/${encodeURIComponent(businessId)}/keys/reveal`, {
+    method: "POST",
+    body: JSON.stringify({ password, mode, ip }),
+  });
+}
+
 export async function resetTestData(businessId: string): Promise<{
   business_id: string;
   intents: number;
