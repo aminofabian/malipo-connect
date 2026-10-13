@@ -1,6 +1,6 @@
 ---
 import AppLayout from "../layouts/AppLayout.astro";
-import { requireMerchant } from "../lib/session";
+import { getApiMode, requireMerchant } from "../lib/session";
 import { publicApiBase, setWebhookUrl, syncFromService } from "../lib/store";
 
 export const prerender = false;
@@ -8,6 +8,9 @@ export const prerender = false;
 const gate = requireMerchant(Astro.cookies, Astro.request);
 if (gate instanceof Response) return gate;
 const tenantId = gate.businessId;
+
+const mode = getApiMode(Astro.cookies);
+const sandbox = mode === "test";
 
 let merchant = await syncFromService(tenantId);
 let siteUrl = merchant.webhookUrl ?? "";
@@ -19,7 +22,7 @@ if (Astro.request.method === "POST") {
   siteUrl = String(form.get("site_url") ?? "").trim();
 
   try {
-    const saved = await setWebhookUrl(tenantId, siteUrl);
+    const saved = await setWebhookUrl(tenantId, siteUrl, mode);
     notice = saved ? "Website URL saved." : "Website URL cleared.";
     merchant = await syncFromService(tenantId);
     siteUrl = merchant.webhookUrl ?? "";
@@ -29,13 +32,15 @@ if (Astro.request.method === "POST") {
 }
 
 const base = publicApiBase();
-const hasKey = Boolean(merchant.clientId);
+const keyId = sandbox ? merchant.testClientId : merchant.clientId;
+const hasKey = Boolean(keyId);
+const secretPlaceholder = sandbox ? "sk_test_…" : "sk_live_…";
 
 const quickstart = hasKey
   ? `const res = await fetch("${base}/v1/payments", {
   method: "POST",
   headers: {
-    Authorization: "Bearer sk_live_…",
+    Authorization: "Bearer ${secretPlaceholder}",
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
@@ -135,10 +140,10 @@ const payment = await res.json();
             <div class="copy-row">
               <span class="copy-row-label">Client ID</span>
               <span class="copy-row-value">
-                <code>{merchant.clientId ?? "— not issued yet —"}</code>
+                <code>{keyId ?? "— not issued yet —"}</code>
                 {
-                  merchant.clientId && (
-                    <button type="button" class="btn btn-ghost btn-sm" data-copy-btn={merchant.clientId}>
+                  keyId && (
+                    <button type="button" class="btn btn-ghost btn-sm" data-copy-btn={keyId}>
                       Copy
                     </button>
                   )
@@ -148,16 +153,16 @@ const payment = await res.json();
             <div class="copy-row">
               <span class="copy-row-label">Client secret</span>
               <span class="copy-row-value">
-                <span class={`pill ${merchant.clientId ? "pill-on" : "pill-draft"}`}>
-                  {merchant.clientId ? "Issued (shown once)" : "Not issued"}
+                <span class={`pill ${keyId ? "pill-on" : "pill-draft"}`}>
+                  {keyId ? "Issued (shown once)" : "Not issued"}
                 </span>
               </span>
             </div>
             <div class="copy-row">
               <span class="copy-row-label">Webhook secret</span>
               <span class="copy-row-value">
-                <span class={`pill ${merchant.clientId ? "pill-on" : "pill-draft"}`}>
-                  {merchant.clientId ? "Issued (shown once)" : "Not issued"}
+                <span class={`pill ${keyId ? "pill-on" : "pill-draft"}`}>
+                  {keyId ? "Issued (shown once)" : "Not issued"}
                 </span>
               </span>
             </div>
@@ -209,11 +214,11 @@ const payment = await res.json();
             <div class="copy-row">
               <span class="copy-row-label">Bearer token</span>
               <span class="copy-row-value">
-                <code>Authorization: Bearer sk_live_…</code>
+                <code>Authorization: Bearer {secretPlaceholder}</code>
                 <button
                   type="button"
                   class="btn btn-ghost btn-sm"
-                  data-copy-btn="Authorization: Bearer sk_live_…"
+                  data-copy-btn={`Authorization: Bearer ${secretPlaceholder}`}
                 >
                   Copy
                 </button>
@@ -244,7 +249,7 @@ const payment = await res.json();
           </div>
           <div class="card-body">
             <p class="note mb-3">
-              Paste your client secret where it says <code>sk_live_…</code>.
+              Paste your client secret where it says <code>{secretPlaceholder}</code>.
             </p>
             <pre class="snippet">{quickstart}</pre>
             <p class="note mt-4">

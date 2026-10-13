@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { DraftDestination } from "./destination";
 import * as malipo from "./malipo";
+import type { ApiMode } from "./malipo";
 
 export type MerchantRecord = {
   tenantId: string;
@@ -12,6 +13,8 @@ export type MerchantRecord = {
   webhookSecretHash: string | null;
   webhookUrl: string | null;
   activated: boolean;
+  hasTestKey: boolean;
+  testClientId: string | null;
 };
 
 export type RevealedSecrets = {
@@ -40,6 +43,8 @@ function empty(tenantId: string): MerchantRecord {
     webhookSecretHash: null,
     webhookUrl: null,
     activated: false,
+    hasTestKey: false,
+    testClientId: null,
   };
 }
 
@@ -133,15 +138,20 @@ function token(prefix: string, bytes = 18): string {
   return `${prefix}${randomBytes(bytes).toString("base64url")}`;
 }
 
-export async function provisionKeys(tenantId: string): Promise<RevealedSecrets> {
+export async function provisionKeys(
+  tenantId: string,
+  mode: ApiMode = "live",
+): Promise<RevealedSecrets> {
   const row = getMerchant(tenantId);
-  if (!row.destination || !row.verified) {
-    throw new Error("Confirm a destination before issuing keys");
+
+  // A sandbox key needs no destination (D5); a live key does.
+  if (mode === "live" && (!row.destination || !row.verified)) {
+    throw new Error("Confirm a destination before issuing live keys");
   }
 
   if (malipo.malipoConfigured()) {
-    const revealed = await malipo.provisionKeys(tenantId);
-    row.clientId = revealed.client_id;
+    const revealed = await malipo.provisionKeys(tenantId, mode);
+    applyRevealed(row, revealed.client_id, mode);
     row.clientSecretHash = hash(revealed.client_secret);
     row.webhookSecretHash = hash(revealed.webhook_secret);
     return {
@@ -151,10 +161,24 @@ export async function provisionKeys(tenantId: string): Promise<RevealedSecrets> 
     };
   }
 
-  const clientId = row.clientId ?? token("pk_live_");
-  const clientSecret = token("sk_live_");
-  const webhookSecret = token("whsec_");
-  row.clientId = clientId;
+  return mode === "test" ? localSecrets(row, "test") : localSecrets(row, "live");
+}
+
+function applyRevealed(row: MerchantRecord, clientId: string, mode: ApiMode): void {
+  if (mode === "test") {
+    row.testClientId = clientId;
+    row.hasTestKey = true;
+  } else {
+    row.clientId = clientId;
+  }
+}
+
+function localSecrets(row: MerchantRecord, mode: ApiMode): RevealedSecrets {
+  const clientId =
+    mode === "test" ? (row.testClientId ?? token("pk_test_")) : (row.clientId ?? token("pk_live_"));
+  const clientSecret = token(mode === "test" ? "sk_test_" : "sk_live_");
+  const webhookSecret = token(mode === "test" ? "whsec_test_" : "whsec_");
+  applyRevealed(row, clientId, mode);
   row.clientSecretHash = hash(clientSecret);
   row.webhookSecretHash = hash(webhookSecret);
   return { clientId, clientSecret, webhookSecret };
@@ -172,6 +196,8 @@ export async function syncFromService(tenantId: string): Promise<MerchantRecord>
   try {
     const remote = await malipo.getMerchant(tenantId);
     if (remote?.client_id) row.clientId = remote.client_id;
+    row.hasTestKey = Boolean(remote?.has_test_key);
+    if (remote?.test_client_id) row.testClientId = remote.test_client_id;
     if (remote?.webhook_url !== undefined) row.webhookUrl = remote.webhook_url ?? null;
     if (remote?.destination) {
       const d = remote.destination as malipo.SavedDestination & {
@@ -215,9 +241,13 @@ export async function syncFromService(tenantId: string): Promise<MerchantRecord>
   return row;
 }
 
-export async function setWebhookUrl(tenantId: string, url: string): Promise<string | null> {
+export async function setWebhookUrl(
+  tenantId: string,
+  url: string,
+  mode: ApiMode = "live",
+): Promise<string | null> {
   if (malipo.malipoConfigured()) {
-    const res = await malipo.setWebhookUrl(tenantId, url);
+    const res = await malipo.setWebhookUrl(tenantId, url, mode);
     const row = getMerchant(tenantId);
     row.webhookUrl = res.webhook_url ?? url;
     return row.webhookUrl;
@@ -226,6 +256,14 @@ export async function setWebhookUrl(tenantId: string, url: string): Promise<stri
   const row = getMerchant(tenantId);
   row.webhookUrl = url.trim() || null;
   return row.webhookUrl;
+}
+
+/** Delete a business's sandbox payments (D7). Live rows are untouched. */
+export async function resetTestData(tenantId: string): Promise<void> {
+  if (malipo.malipoConfigured()) {
+    await malipo.resetTestData(tenantId);
+    return;
+  }
 }
 
 export type PaymentSummary = {
@@ -242,10 +280,11 @@ export type PaymentSummary = {
 export async function listRecentPayments(
   tenantId: string,
   limit = 5,
+  mode: ApiMode = "live",
 ): Promise<PaymentSummary[]> {
   if (!malipo.malipoConfigured()) return [];
   try {
-    const res = await malipo.listPayments(tenantId, limit);
+    const res = await malipo.listPayments(tenantId, limit, mode);
     return (res.payments ?? []) as PaymentSummary[];
   } catch {
     return [];

@@ -2,11 +2,13 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import type { AstroCookies } from "astro";
 import { CONNECT_SESSION, type SessionClaims } from "./auth";
 import type { DraftDestination } from "./destination";
+import type { ApiMode } from "./malipo";
 import type { RevealedSecrets } from "./store";
 
 const DRAFT = "mc_draft";
 const PENDING_DEST = "mc_pending_dest";
 const ONCE = "mc_once";
+const MODE = "mc_mode";
 
 const cookieOpts = {
   path: "/",
@@ -145,4 +147,16 @@ export function takeOnceSecrets(cookies: AstroCookies): RevealedSecrets | null {
   } catch {
     return null;
   }
+}
+
+// ── KioskPay sandbox mode ─────────────────────────────────────────────────
+// One cookie drives the whole app: `live` (real money) or `test` (sandbox).
+// Sandbox data is isolated server-side; this only picks which view to render.
+
+export function getApiMode(cookies: AstroCookies): ApiMode {
+  return cookies.get(MODE)?.value === "test" ? "test" : "live";
+}
+
+export function setApiMode(cookies: AstroCookies, mode: ApiMode): void {
+  cookies.set(MODE, mode, cookieOpts);
 }

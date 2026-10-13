@@ -5,6 +5,7 @@ import "../styles/shell.css";
 import "../styles/components.css";
 import "../styles/utilities.css";
 import Icon from "../components/Icon.astro";
+import { getApiMode } from "../lib/session";
 
 interface Props {
   title?: string;
@@ -43,6 +44,7 @@ const nav = [
 const stepLabels = ["Destination", "Confirm", "Keys", "Test"];
 
 const initial = (email ?? "?").trim().charAt(0).toUpperCase() || "?";
+const testMode = getApiMode(Astro.cookies) === "test";
 ---
 
 <!doctype html>
@@ -109,6 +111,19 @@ const initial = (email ?? "?").trim().charAt(0).toUpperCase() || "?";
                 <strong>{title}</strong>
               </p>
               <div class="topbar-right">
+                <form method="post" action="/api/mode" class="mode-form">
+                  <input type="hidden" name="mode" value={testMode ? "live" : "test"} />
+                  <input type="hidden" name="next" value={Astro.url.pathname} />
+                  <button
+                    type="submit"
+                    class:list={["mode-toggle", { "mode-toggle-on": testMode }]}
+                    aria-pressed={testMode}
+                    title="Switch between live and sandbox"
+                  >
+                    <span class="mode-dot" aria-hidden="true" />
+                    {testMode ? "Test mode" : "Live mode"}
+                  </button>
+                </form>
                 {email && (
                   <span class="topbar-user">
                     <span class="avatar" aria-hidden="true">{initial}</span>
@@ -137,6 +152,16 @@ const initial = (email ?? "?").trim().charAt(0).toUpperCase() || "?";
                 </button>
               </div>
 
+              {testMode && (
+                <div class="callout callout-warn" role="status">
+                  <span class="callout-title">Test mode</span>
+                  <span>
+                    Sandbox keys and payments — no real money moves. Switch back to <strong>Live</strong>{" "}
+                    when you are ready to take real payments.
+                  </span>
+                </div>
+              )}
+
               {step != null && (
                 <ol class="steps" aria-label="Setup progress">
                   {stepLabels.map((label, i) => {
@@ -159,6 +184,42 @@ const initial = (email ?? "?").trim().charAt(0).toUpperCase() || "?";
     }
   </body>
 </html>
+
+<style>
+  .mode-form {
+    display: inline-flex;
+    margin: 0;
+  }
+
+  .mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--line, #d8d8d8);
+    border-radius: 999px;
+    background: transparent;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: inherit;
+  }
+
+  .mode-toggle-on {
+    border-color: #b8860b;
+    background: #fdf3d3;
+    color: #6b4e00;
+  }
+
+  .mode-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0.85;
+  }
+</style>
 
 <script>
   // At-a-glance health + a dismissible banner, so a down back-end is visible

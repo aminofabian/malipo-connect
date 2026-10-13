@@ -1,10 +1,20 @@
 import { useEffect, useState } from "react";
 
 type Status = "idle" | "prompting" | "settled" | "failed";
+type Mode = "live" | "test";
 
 const phoneOk = (v: string) => /^254\d{9}$/.test(v.replace(/\s+/g, ""));
 const MIN_KES = 1;
 const MAX_KES = 500;
+
+const SCENARIOS: { value: string; label: string }[] = [
+  { value: "success", label: "Payment succeeds" },
+  { value: "delayed", label: "Succeeds after a few seconds" },
+  { value: "insufficient_funds", label: "Insufficient funds" },
+  { value: "wrong_pin", label: "Wrong M-Pesa PIN" },
+  { value: "customer_timeout", label: "Customer doesn't respond" },
+  { value: "subscriber_cancelled", label: "Customer cancels" },
+];
 
 function parseAmount(raw: string): number | null {
   const n = Number.parseInt(String(raw).replace(/[^\d]/g, ""), 10);
@@ -15,11 +25,15 @@ function parseAmount(raw: string): number | null {
 export default function TestPayment({
   tenantId,
   initialAmount,
+  mode = "live",
 }: {
   tenantId: string;
   initialAmount?: string;
+  mode?: Mode;
 }) {
+  const sandbox = mode === "test";
   const [phone, setPhone] = useState("254");
+  const [scenario, setScenario] = useState("success");
   const [amount, setAmount] = useState(initialAmount || "10");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -31,15 +45,10 @@ export default function TestPayment({
       try {
         const res = await fetch(`/api/test-status?id=${encodeURIComponent(paymentId)}`);
         if (!res.ok) return;
-        const data = (await res.json()) as {
-          status: Status;
-          failure_message?: string;
-        };
+        const data = (await res.json()) as { status: Status; failure_message?: string };
         if (data.status === "settled" || data.status === "failed") {
           setStatus(data.status);
-          if (data.status === "failed" && data.failure_message) {
-            setError(data.failure_message);
-          }
+          if (data.status === "failed" && data.failure_message) setError(data.failure_message);
         }
       } catch {
         /* keep polling */
@@ -51,8 +60,9 @@ export default function TestPayment({
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
     const cleaned = phone.replace(/\s+/g, "");
-    if (!phoneOk(cleaned)) {
+    if (!sandbox && !phoneOk(cleaned)) {
       setError("Use a Kenyan number like 254712345678.");
       return;
     }
@@ -61,17 +71,37 @@ export default function TestPayment({
       setError(`Enter an amount between KES ${MIN_KES} and ${MAX_KES}.`);
       return;
     }
+
     setStatus("prompting");
     try {
       const res = await fetch("/api/test-payment", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ phone: cleaned, amount: kes, tenantId }),
+        body: JSON.stringify({
+          phone: cleaned,
+          amount: kes,
+          tenantId,
+          mode,
+          scenario,
+        }),
       });
-      const data = (await res.json()) as { id?: string; error?: string };
+      const data = (await res.json()) as {
+        id?: string;
+        status?: Status;
+        error?: string;
+        failure_message?: string;
+      };
+
       if (!res.ok || !data.id) {
         setStatus("failed");
         setError(data.error ?? "Could not start the test.");
+        return;
+      }
+
+      // A reserved sandbox number resolves immediately; anything else polls.
+      if (data.status === "settled" || data.status === "failed") {
+        setStatus(data.status);
+        if (data.status === "failed") setError(data.failure_message ?? "Payment failed.");
         return;
       }
       setPaymentId(data.id);
@@ -87,9 +117,11 @@ export default function TestPayment({
     return (
       <div className="card">
         <div className="card-body">
-          <span className="section-kicker">Payment settled</span>
+          <span className="section-kicker">{sandbox ? "Sandbox payment settled" : "Payment settled"}</span>
           <p className="callout callout-ok mt-3">
-            Received KES {kesLabel}. Your integration works.
+            {sandbox
+              ? `Simulated KES ${kesLabel}. Your integration works — no real money moved.`
+              : `Received KES ${kesLabel}. Your integration works.`}
           </p>
         </div>
         <div className="card-foot">
@@ -104,23 +136,43 @@ export default function TestPayment({
   return (
     <section className="card">
       <div className="card-head">
-        <h2>Pay from your phone</h2>
+        <h2>{sandbox ? "Send a sandbox payment" : "Pay from your phone"}</h2>
       </div>
       <form onSubmit={onSubmit} className="card-body stack">
         <div className="form-grid">
-          <div className="field">
-            <label htmlFor="phone">Your phone</label>
-            <input
-              id="phone"
-              name="phone"
-              inputMode="tel"
-              autoComplete="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="254712345678"
-            />
-            <span className="field-hint">A Kenyan number, in international format.</span>
-          </div>
+          {sandbox ? (
+            <div className="field">
+              <label htmlFor="scenario">Payment outcome</label>
+              <select
+                id="scenario"
+                name="scenario"
+                value={scenario}
+                onChange={(e) => setScenario(e.target.value)}
+              >
+                {SCENARIOS.map((s) => (
+                  <option value={s.value}>{s.label}</option>
+                ))}
+              </select>
+              <span className="field-hint">
+                A reserved sandbox number — no phone, no real money.
+              </span>
+            </div>
+          ) : (
+            <div className="field">
+              <label htmlFor="phone">Your phone</label>
+              <input
+                id="phone"
+                name="phone"
+                inputMode="tel"
+                autoComplete="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="254712345678"
+              />
+              <span className="field-hint">A Kenyan number, in international format.</span>
+            </div>
+          )}
+
           <div className="field">
             <label htmlFor="amount">Amount (KES)</label>
             <input
@@ -135,7 +187,9 @@ export default function TestPayment({
               max={MAX_KES}
             />
             <span className="field-hint">
-              Some banks reject KES 1. Try 10 or whatever your bank accepts ({MIN_KES}–{MAX_KES}).
+              {sandbox
+                ? `Sandbox amounts are {KES ${MIN_KES}–${MAX_KES}}.`
+                : `Some banks reject KES 1. Try 10 or whatever your bank accepts (${MIN_KES}–${MAX_KES}).`}
             </span>
           </div>
         </div>
@@ -148,14 +202,22 @@ export default function TestPayment({
 
         {status === "prompting" && (
           <p className="callout callout-warn" role="status">
-            <span className="callout-title">Waiting for you.</span>
-            <span>Check your phone for the M‑Pesa prompt and enter your PIN.</span>
+            <span className="callout-title">
+              {sandbox ? "Simulating." : "Waiting for you."}
+            </span>
+            <span>
+              {sandbox
+                ? "Settling shortly — this page will update."
+                : "Check your phone for the M‑Pesa prompt and enter your PIN."}
+            </span>
           </p>
         )}
 
         {status === "failed" && !error && (
           <p className="callout callout-error" role="alert">
-            Payment failed. Try a different amount — some banks need more than KES 1.
+            {sandbox
+              ? "Simulated failure. Try a different outcome."
+              : "Payment failed. Try a different amount — some banks need more than KES 1."}
           </p>
         )}
 
@@ -166,7 +228,11 @@ export default function TestPayment({
             disabled={status === "prompting"}
             aria-busy={status === "prompting"}
           >
-            {status === "prompting" ? "Waiting…" : `Send KES ${kesLabel}`}
+            {status === "prompting"
+              ? "Waiting…"
+              : sandbox
+                ? `Send sandbox KES ${kesLabel}`
+                : `Send KES ${kesLabel}`}
           </button>
         </div>
       </form>

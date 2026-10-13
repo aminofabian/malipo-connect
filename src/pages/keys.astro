@@ -1,12 +1,13 @@
 ---
 import AppLayout from "../layouts/AppLayout.astro";
 import { destinationLabel } from "../lib/destination";
-import { requireMerchant, setOnceSecrets, takeOnceSecrets } from "../lib/session";
+import { getApiMode, requireMerchant, setOnceSecrets, takeOnceSecrets } from "../lib/session";
 import {
   getSummary,
   listRecentPayments,
   provisionKeys,
   publicApiBase,
+  resetTestData,
   syncFromService,
 } from "../lib/store";
 
@@ -16,49 +17,64 @@ const gate = requireMerchant(Astro.cookies, Astro.request);
 if (gate instanceof Response) return gate;
 const tenantId = gate.businessId;
 
+const mode = getApiMode(Astro.cookies);
+const sandbox = mode === "test";
+
 let merchant = await syncFromService(tenantId);
 let once = takeOnceSecrets(Astro.cookies);
-let rotateError: string | null = null;
-let rotated = false;
+let error: string | null = null;
+let notice: string | null = null;
 
 if (Astro.request.method === "POST") {
   const form = await Astro.request.formData();
   const action = String(form.get("action") ?? "");
 
-  if (action === "rotate") {
-    try {
-      const secrets = await provisionKeys(tenantId);
+  try {
+    if (action === "rotate") {
+      const secrets = await provisionKeys(tenantId, mode);
       setOnceSecrets(Astro.cookies, secrets);
       once = secrets;
-      rotated = true;
+      notice = sandbox ? "New sandbox key issued." : "New key issued.";
       merchant = await syncFromService(tenantId);
-    } catch (e) {
-      rotateError = e instanceof Error ? e.message : "Could not rotate keys.";
+    } else if (action === "reset") {
+      await resetTestData(tenantId);
+      notice = "Sandbox data cleared.";
+      merchant = await syncFromService(tenantId);
     }
+  } catch (e) {
+    error = e instanceof Error ? e.message : "Could not complete that action.";
   }
 }
 
-if (!merchant.clientId || !merchant.destination) {
+const keyId = sandbox ? merchant.testClientId : merchant.clientId;
+const hasKey = Boolean(keyId);
+
+// Live collections need a destination; the sandbox needs none (D5).
+if (!sandbox && (!hasKey || !merchant.destination)) {
   return Astro.redirect("/destination");
 }
 
 const base = publicApiBase();
-const dest = destinationLabel(merchant.destination);
+const dest = merchant.destination ? destinationLabel(merchant.destination) : "your account";
 
 const scope = Astro.url.searchParams.get("scope") === "all" ? "all" : "this";
 const activeId = merchant.destinationId;
 
-const allPayments = await listRecentPayments(tenantId, 15);
+const allPayments = await listRecentPayments(tenantId, 15, mode);
 const payments =
   scope === "this" && activeId
     ? allPayments.filter((p) => p.destination_id === activeId)
     : allPayments;
 
-const summary = await getSummary(tenantId);
+// Sandbox totals are not money; only the live view reports settled volume.
+const summary = sandbox ? null : await getSummary(tenantId);
 const scopeTotal =
   scope === "this" && activeId
     ? summary?.by_destination.find((row) => row.destination_id === activeId)
     : null;
+
+const prefix = sandbox ? "sk_test_" : "sk_live_";
+const pkPrefix = sandbox ? "pk_test_" : "pk_live_";
 
 function kes(amount: string): string {
   const n = Number(amount);
@@ -98,30 +114,62 @@ function when(iso: string | null | undefined) {
 }
 ---
 
-<AppLayout title="Keys & requests" section="Payments" step={3} current="keys" email={gate.email}>
+<AppLayout
+  title={sandbox ? "Sandbox keys" : "Keys & requests"}
+  section="Payments"
+  step={3}
+  current="keys"
+  email={gate.email}
+>
   <header class="page-head">
     <div>
-      <span class="page-kicker">Step 3 of 4</span>
-      <h1>Charge a phone</h1>
+      <span class="page-kicker">{sandbox ? "Sandbox" : "Step 3 of 4"}</span>
+      <h1>{sandbox ? "Charge in sandbox" : "Charge a phone"}</h1>
       <p class="lede">
-        Money goes to <strong>{dest}</strong>. Copy this request — the customer's phone gets an
-        M‑Pesa prompt.
+        {
+          sandbox
+            ? "Test keys for the KioskPay API. Send simulated payments and receive real, signed webhooks — no money moves."
+            : `Money goes to ${dest}. Copy this request — the customer's phone gets an M‑Pesa prompt.`
+        }
       </p>
     </div>
     <div class="page-actions">
-      <a class="btn btn-ghost" href="/destination">Change destination</a>
+      {!sandbox && <a class="btn btn-ghost" href="/destination">Change destination</a>}
       <a class="btn btn-ghost" href="/test">Send a test</a>
     </div>
   </header>
 
   <div class="split">
     <div class="blocks">
+      {error && <p class="callout callout-error" role="alert">{error}</p>}
+      {notice && <p class="callout callout-ok" role="status">{notice}</p>}
+
       {
-        once ? (
+        !hasKey ? (
+          <section class="card">
+            <div class="card-head">
+              <h2>Sandbox keys</h2>
+            </div>
+            <div class="card-body">
+              <p class="note">
+                Generate test keys to call the API in sandbox mode. No destination and no Safaricom
+                account needed.
+              </p>
+            </div>
+            <form method="post" action="/keys" class="card-foot">
+              <input type="hidden" name="action" value="rotate" />
+              <button type="submit" class="btn btn-accent">
+                Create sandbox keys
+              </button>
+            </form>
+          </section>
+        ) : once ? (
           <>
             <p class="callout callout-warn" role="status">
               <span class="callout-title">
-                {rotated ? "New key issued. " : ""}Copy this now.
+                {notice === "New key issued." || notice === "New sandbox key issued."
+                  ? "New key issued. "
+                  : ""}Copy this now.
               </span>
               <span>Refreshing the page hides the key forever.</span>
             </p>
@@ -186,9 +234,9 @@ function when(iso: string | null | undefined) {
 
       <section class="card card-flush" aria-label="Recent payments">
         <div class="card-head">
-          <h2>Recent payments</h2>
+          <h2>{sandbox ? "Recent sandbox payments" : "Recent payments"}</h2>
           {
-            activeId && (
+            activeId && !sandbox && (
               <div class="segmented" role="group" aria-label="Payment scope">
                 <a
                   class:list={[{ on: scope === "this" }]}
@@ -227,9 +275,11 @@ function when(iso: string | null | undefined) {
           payments.length === 0 ? (
             <div class="card-body">
               <p class="note">
-                {scope === "this"
-                  ? "No payments recorded for this destination yet."
-                  : "No payments yet. Send a test or create a payment."}
+                {sandbox
+                  ? "No sandbox payments yet. Send one to see it here."
+                  : scope === "this"
+                    ? "No payments recorded for this destination yet."
+                    : "No payments yet. Send a test or create a payment."}
               </p>
             </div>
           ) : (
@@ -263,12 +313,22 @@ function when(iso: string | null | undefined) {
             </div>
           )
         }
+
+        {
+          sandbox && payments.length > 0 && (
+            <form method="post" action="/keys" class="card-foot">
+              <input type="hidden" name="action" value="reset" />
+              <p class="note">Clears every sandbox payment and event. Live data is untouched.</p>
+              <button type="submit" class="btn btn-danger-ghost btn-sm">
+                Reset sandbox data
+              </button>
+            </form>
+          )
+        }
       </section>
     </div>
 
     <aside class="aside">
-      {rotateError && <p class="callout callout-error" role="alert">{rotateError}</p>}
-
       <section class="card">
         <div class="card-head">
           <h2>Integration details</h2>
@@ -278,10 +338,14 @@ function when(iso: string | null | undefined) {
             <div class="copy-row">
               <span class="copy-row-label">Client ID</span>
               <span class="copy-row-value">
-                <code>{merchant.clientId}</code>
-                <button type="button" class="btn btn-ghost btn-sm" data-copy-btn={merchant.clientId}>
-                  Copy
-                </button>
+                <code>{keyId ?? "— not issued yet —"}</code>
+                {
+                  keyId && (
+                    <button type="button" class="btn btn-ghost btn-sm" data-copy-btn={keyId}>
+                      Copy
+                    </button>
+                  )
+                }
               </span>
             </div>
             <div class="copy-row">
@@ -295,11 +359,21 @@ function when(iso: string | null | undefined) {
             </div>
           </div>
         </div>
-        <form method="post" action="/keys" class="card-foot">
-          <input type="hidden" name="action" value="rotate" />
-          <p class="note">Issues a new client secret. The old one stops working immediately.</p>
-          <button type="submit" class="btn btn-danger-ghost btn-sm">Rotate key</button>
-        </form>
+        {
+          hasKey && (
+            <form method="post" action="/keys" class="card-foot">
+              <input type="hidden" name="action" value="rotate" />
+              <p class="note">
+                {sandbox
+                  ? "Issues a new sandbox client secret. The old one stops working immediately."
+                  : "Issues a new client secret. The old one stops working immediately."}
+              </p>
+              <button type="submit" class="btn btn-danger-ghost btn-sm">
+                {sandbox ? "Rotate sandbox key" : "Rotate key"}
+              </button>
+            </form>
+          )
+        }
       </section>
 
       <section class="card">
@@ -318,6 +392,15 @@ function when(iso: string | null | undefined) {
               <code>/v1/payments/{"{id}"}</code>
               <span class="endpoint-what">Check until it settles.</span>
             </li>
+            {
+              sandbox && (
+                <li>
+                  <span class="method method-post">POST</span>
+                  <code>/v1/payments/{"{id}"}/simulate</code>
+                  <span class="endpoint-what">Force settled / failed.</span>
+                </li>
+              )
+            }
           </ul>
         </div>
       </section>
@@ -328,7 +411,9 @@ function when(iso: string | null | undefined) {
         </div>
         <div class="card-body">
           <p class="note mb-3">
-            Pay from your phone to prove the whole thing works. Some banks reject KES 1.
+            {sandbox
+              ? "Pick an outcome and simulate the flow — no phone needed."
+              : "Pay from your phone to prove the whole thing works. Some banks reject KES 1."}
           </p>
           <form method="get" action="/test" class="row gap-2">
             <div class="field field-grow">
@@ -351,12 +436,12 @@ function when(iso: string | null | undefined) {
         <summary>Which key is which?</summary>
         <div class="explainer-body">
           <p>
-            <strong>Client secret</strong> (<code>sk_live_…</code>) authenticates your server on
-            every request. <strong>Webhook signing secret</strong> (<code>whsec_…</code>) proves a
+            <strong>Client secret</strong> (<code>{prefix}…</code>) authenticates your server on every
+            request. <strong>Webhook signing secret</strong> (<code>{sandbox ? "whsec_test_" : "whsec_"}…</code>) proves a
             callback really came from Malipo. Both are shown once, when they are issued.
           </p>
           <p>
-            The <strong>client ID</strong> (<code>pk_live_…</code>) is not a secret — it is safe to
+            The <strong>client ID</strong> (<code>{pkPrefix}…</code>) is not a secret — it is safe to
             keep in your configuration and is shown here any time.
           </p>
         </div>
@@ -373,7 +458,6 @@ function when(iso: string | null | undefined) {
       </details>
     </aside>
   </div>
-
 </AppLayout>
 
 <script>

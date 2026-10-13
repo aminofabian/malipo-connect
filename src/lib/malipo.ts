@@ -6,6 +6,9 @@
 const base = () => process.env.MALIPO_SERVICE_URL?.replace(/\/$/, "") ?? "";
 const token = () => process.env.MALIPO_SERVICE_TOKEN ?? "";
 
+/** KioskPay sandbox selector. `test` keys never move real money. */
+export type ApiMode = "live" | "test";
+
 export function malipoConfigured(): boolean {
   return Boolean(base());
 }
@@ -135,41 +138,58 @@ export async function activateDestination(businessId: string, destinationId: str
   ) as Promise<SavedDestination>;
 }
 
-export async function provisionKeys(businessId: string): Promise<{
+export async function provisionKeys(
+  businessId: string,
+  mode: ApiMode = "live",
+): Promise<{
   client_id: string;
   client_secret: string;
   webhook_secret: string;
+  mode?: ApiMode;
 }> {
   return malipoFetch(`/internal/v1/merchants/${encodeURIComponent(businessId)}/keys`, {
     method: "POST",
-    body: "{}",
+    body: JSON.stringify({ mode }),
   });
 }
 
-export async function setWebhookUrl(businessId: string, url: string) {
+export async function setWebhookUrl(businessId: string, url: string, mode: ApiMode = "live") {
   return malipoFetch(`/internal/v1/merchants/${encodeURIComponent(businessId)}/webhook`, {
     method: "PUT",
-    body: JSON.stringify({ url }),
+    body: JSON.stringify({ url, mode }),
   });
+}
+
+export async function resetTestData(businessId: string): Promise<{
+  business_id: string;
+  intents: number;
+  outbox: number;
+}> {
+  return malipoFetch(
+    `/internal/v1/merchants/${encodeURIComponent(businessId)}/test-data/reset`,
+    { method: "POST", body: "{}" },
+  );
 }
 
 export async function createTestPayment(
   businessId: string,
   phone: string,
   amountKes: number,
+  mode: ApiMode = "live",
 ) {
   const whole = Math.floor(amountKes);
   const amount = `${whole}.00`;
-  const idempotency = `connect-test:${businessId}:${Date.now()}`;
+  const idempotency = `connect-test:${businessId}:${mode}:${Date.now()}`;
   return malipoFetch(`/internal/v1/intents`, {
     method: "POST",
     body: JSON.stringify({
       business_id: businessId,
+      mode,
       amount,
       currency: "KES",
       payer_msisdn: phone,
       idempotency_key: idempotency,
-      context: { type: "CONNECT_TEST", reference: `KES-${whole}` },
+      context: { type: mode === "test" ? "CONNECT_SANDBOX" : "CONNECT_TEST", reference: `KES-${whole}` },
     }),
   });
 }
@@ -199,9 +219,9 @@ export async function getSummary(businessId: string): Promise<MerchantSummary> {
   ) as Promise<MerchantSummary>;
 }
 
-export async function listPayments(businessId: string, limit = 5) {
+export async function listPayments(businessId: string, limit = 5, mode: ApiMode = "live") {
   return malipoFetch(
-    `/internal/v1/merchants/${encodeURIComponent(businessId)}/payments?limit=${limit}`,
+    `/internal/v1/merchants/${encodeURIComponent(businessId)}/payments?limit=${limit}&mode=${mode}`,
   );
 }
 

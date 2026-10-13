@@ -7,6 +7,7 @@ const toc = [
   { id: "key", label: "Your key" },
   { id: "create", label: "Create a payment" },
   { id: "result", label: "Wait for settled" },
+  { id: "test", label: "Test mode" },
   { id: "example", label: "Full example" },
   { id: "status", label: "Status" },
   { id: "callback", label: "Callbacks" },
@@ -111,6 +112,49 @@ const toc = [
           Treat the payment as paid only when a <code>GET</code> returns{" "}
           <code>"status": "settled"</code>. When it does, <code>receipt</code> is the M-Pesa receipt
           code.
+        </p>
+      </section>
+
+      <section id="test" class="doc-section">
+        <h2>Test mode (sandbox)</h2>
+        <p>
+          You can build and verify the whole integration without moving real money. In Malipo
+          Connect, switch on <strong>Test mode</strong> and copy the sandbox codes — they start
+          with <code>pk_test_</code> and <code>sk_test_</code>. A sandbox key never touches
+          Safaricom and never charges anyone.
+        </p>
+        <pre class="snippet">{`curl -X POST https://backend.kioskpay.co.ke/v1/payments \\
+  -H "Authorization: Bearer sk_test_…" \\
+  -H "Content-Type: application/json" \\
+  -d '{"amount":"100.00","customer_phone":"254000000001","idempotency_key":"sandbox-1"}'`}</pre>
+        <p>
+          The <code>customer_phone</code> picks the outcome. These numbers are reserved for the
+          sandbox:
+        </p>
+        <table>
+          <thead>
+            <tr><th><code>customer_phone</code></th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>254000000001</code></td><td><code>settled</code></td></tr>
+            <tr><td><code>254000000002</code></td><td><code>failed</code> — <code>insufficient_funds</code></td></tr>
+            <tr><td><code>254000000003</code></td><td><code>failed</code> — <code>wrong_pin</code></td></tr>
+            <tr><td><code>254000000004</code></td><td><code>failed</code> — <code>customer_timeout</code></td></tr>
+            <tr><td><code>254000000005</code></td><td><code>failed</code> — <code>subscriber_cancelled</code></td></tr>
+            <tr><td>any other number</td><td><code>settled</code> after a few seconds</td></tr>
+          </tbody>
+        </table>
+        <p>
+          To drive a pending sandbox payment yourself — handy in a test suite — force the outcome:
+        </p>
+        <pre class="snippet">{`curl -X POST https://backend.kioskpay.co.ke/v1/payments/{id}/simulate \\
+  -H "Authorization: Bearer sk_test_…" \\
+  -H "Content-Type: application/json" \\
+  -d '{"outcome":"settled"}'`}</pre>
+        <p>
+          Sandbox callbacks are real and signed with your <strong>test</strong> signing code
+          (<code>whsec_test_…</code>), so your webhook handler is exercised exactly as in
+          production. Switch Test mode off to take real payments.
         </p>
       </section>
 
